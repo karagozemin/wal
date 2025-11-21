@@ -5,6 +5,7 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { Transaction } from "@mysten/sui/transactions";
 import { WalletButton } from "@/components/auth/WalletButton";
 import { ContentUploader } from "@/components/creator/ContentUploader";
+import { ContentViewer } from "@/components/content/ContentViewer";
 import { PACKAGE_ID } from "@/lib/sui/config";
 import { suiClient } from "@/lib/sui/client";
 import Link from "next/link";
@@ -23,7 +24,10 @@ export default function Dashboard() {
     content_id: string;
     title: string;
     is_public: boolean;
-    walrus_blob_id?: string;
+    walrus_blob_id: string;
+    seal_policy_id: string;
+    description: string;
+    content_type: string;
   }>>([]);
   
   // Form states
@@ -95,16 +99,48 @@ export default function Dashboard() {
       });
 
       // Filter content created by this user
-      const userContent = events.data
-        .filter((event: any) => event.parsedJson?.creator === account.address)
-        .map((event: any) => ({
-          content_id: event.parsedJson?.content_id,
-          title: event.parsedJson?.title,
-          is_public: event.parsedJson?.is_public,
-        }));
+      const userContentEvents = events.data.filter(
+        (event: any) => event.parsedJson?.creator === account.address
+      );
 
-      setMyContent(userContent);
-      console.log("Found content:", userContent);
+      // Fetch full content objects
+      const userContentWithDetails = await Promise.all(
+        userContentEvents.map(async (event: any) => {
+          const data = event.parsedJson;
+          try {
+            const contentObject = await suiClient.getObject({
+              id: data.content_id,
+              options: { showContent: true },
+            });
+
+            const fields = (contentObject.data?.content as any)?.fields || {};
+            
+            return {
+              content_id: data.content_id,
+              title: data.title || fields.title || "Untitled",
+              is_public: data.is_public,
+              walrus_blob_id: fields.walrus_blob_id || "",
+              seal_policy_id: fields.seal_policy_id || "",
+              description: fields.description || "",
+              content_type: fields.content_type || "media",
+            };
+          } catch (error) {
+            console.error(`Error fetching content ${data.content_id}:`, error);
+            return {
+              content_id: data.content_id,
+              title: data.title,
+              is_public: data.is_public,
+              walrus_blob_id: "",
+              seal_policy_id: "",
+              description: "",
+              content_type: "media",
+            };
+          }
+        })
+      );
+
+      setMyContent(userContentWithDetails);
+      console.log("Found content:", userContentWithDetails);
     } catch (error) {
       console.error("Error fetching content:", error);
     }
@@ -467,35 +503,45 @@ export default function Dashboard() {
                     No content uploaded yet. Create some content above! 📝
                   </p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {myContent.map((content) => (
                       <div
                         key={content.content_id}
-                        className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors"
+                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                       >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">{content.title}</h4>
-                            <div className="flex items-center gap-3 text-sm text-gray-600">
-                              <span className={`px-2 py-1 rounded ${
-                                content.is_public 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {content.is_public ? '🌐 Public' : '🔒 Subscribers Only'}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                ID: {content.content_id.slice(0, 8)}...
-                              </span>
-                            </div>
+                        <ContentViewer
+                          content={{
+                            id: content.content_id,
+                            title: content.title,
+                            description: content.description,
+                            walrusBlobId: content.walrus_blob_id,
+                            sealPolicyId: content.seal_policy_id,
+                            isPublic: content.is_public,
+                            contentType: content.content_type,
+                            creator: account?.address || "",
+                          }}
+                          hasAccess={true} // Creator always has access to their own content
+                        />
+                        <div className="p-4 bg-gray-50 border-t flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              content.is_public 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {content.is_public ? '🌐 Public' : '🔒 Subscribers Only'}
+                            </span>
                           </div>
                           <a
                             href={`https://suiscan.xyz/testnet/object/${content.content_id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
                           >
-                            View on Sui →
+                            View on Sui
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
                           </a>
                         </div>
                       </div>
