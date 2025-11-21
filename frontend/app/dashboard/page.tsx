@@ -19,6 +19,12 @@ export default function Dashboard() {
   const [profileId, setProfileId] = useState("");
   const [creatingTier, setCreatingTier] = useState(false);
   const [tiers, setTiers] = useState<Array<{ id: string; name: string }>>([]);
+  const [myContent, setMyContent] = useState<Array<{
+    content_id: string;
+    title: string;
+    is_public: boolean;
+    walrus_blob_id?: string;
+  }>>([]);
   
   // Form states
   const [handle, setHandle] = useState("");
@@ -62,6 +68,8 @@ export default function Dashboard() {
         
         // Fetch existing tiers for this profile
         await fetchTiers(profileIdFromEvent);
+        // Fetch user's content
+        await fetchMyContent();
       } else {
         console.log("No profile found for this wallet");
         setHasProfile(false);
@@ -71,6 +79,34 @@ export default function Dashboard() {
       setHasProfile(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMyContent = async () => {
+    if (!account?.address) return;
+    
+    try {
+      // Query for ContentCreated events from this user
+      const events = await suiClient.queryEvents({
+        query: {
+          MoveEventType: `${PACKAGE_ID}::content::ContentCreated`,
+        },
+        limit: 50,
+      });
+
+      // Filter content created by this user
+      const userContent = events.data
+        .filter((event: any) => event.parsedJson?.creator === account.address)
+        .map((event: any) => ({
+          content_id: event.parsedJson?.content_id,
+          title: event.parsedJson?.title,
+          is_public: event.parsedJson?.is_public,
+        }));
+
+      setMyContent(userContent);
+      console.log("Found content:", userContent);
+    } catch (error) {
+      console.error("Error fetching content:", error);
     }
   };
 
@@ -325,7 +361,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <div className="text-sm text-gray-600 mb-1">Total Content</div>
-                  <div className="text-3xl font-bold text-gray-900">0</div>
+                  <div className="text-3xl font-bold text-gray-900">{myContent.length}</div>
                 </div>
               </div>
 
@@ -421,6 +457,52 @@ export default function Dashboard() {
               {tiers.length > 0 && (
                 <ContentUploader profileId={profileId} tiers={tiers} />
               )}
+
+              {/* My Content */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">My Content</h3>
+                
+                {myContent.length === 0 ? (
+                  <p className="text-gray-600 text-center py-8">
+                    No content uploaded yet. Create some content above! 📝
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {myContent.map((content) => (
+                      <div
+                        key={content.content_id}
+                        className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 mb-1">{content.title}</h4>
+                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                              <span className={`px-2 py-1 rounded ${
+                                content.is_public 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {content.is_public ? '🌐 Public' : '🔒 Subscribers Only'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ID: {content.content_id.slice(0, 8)}...
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={`https://suiscan.xyz/testnet/object/${content.content_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            View on Sui →
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

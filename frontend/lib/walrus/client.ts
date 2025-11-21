@@ -25,59 +25,20 @@ export class WalrusService {
 
   /**
    * Upload a file to Walrus
+   * Based on official example: https://github.com/MystenLabs/walrus/blob/main/docs/examples/javascript/blob_upload_download_webapi.html
    */
   async uploadFile(file: File): Promise<UploadResponse> {
     try {
       console.log("Uploading to Walrus:", this.publisherUrl);
       console.log("File size:", file.size, "bytes");
 
-      // For hackathon demo: Use mock blob ID if Walrus is unavailable
-      // In production, this would always use real Walrus
-      const USE_MOCK = false; // Set to true if Walrus testnet is down
-      
-      if (USE_MOCK) {
-        console.warn("Using mock Walrus blob ID for demo");
-        return {
-          blobId: `mock_blob_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          endEpoch: Date.now() + 30 * 24 * 60 * 60 * 1000,
-        };
-      }
-
-      // Try different Walrus endpoints
-      // Walrus testnet might use different endpoints
-      const endpoints = [
-        `/v1/store`,
-        `/store`,
-        `/v1/blobs`,
-      ];
-
-      let response;
-      let lastError;
-
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${this.publisherUrl}${endpoint}`);
-          response = await fetch(`${this.publisherUrl}${endpoint}`, {
-            method: "PUT",
-            body: file,
-          });
-
-          if (response.ok) {
-            console.log(`Success with endpoint: ${endpoint}`);
-            break;
-          } else {
-            console.log(`Failed with ${endpoint}: ${response.status}`);
-            lastError = new Error(`${response.status}: ${response.statusText}`);
-          }
-        } catch (err) {
-          console.error(`Error with ${endpoint}:`, err);
-          lastError = err;
-        }
-      }
-
-      if (!response || !response.ok) {
-        throw new Error(`All Walrus endpoints failed. Last error: ${lastError}`);
-      }
+      // Use the correct endpoint: /v1/blobs with epochs parameter
+      // Following the official JavaScript example
+      const numEpochs = 1;
+      const response = await fetch(`${this.publisherUrl}/v1/blobs?epochs=${numEpochs}`, {
+        method: "PUT",
+        body: file,
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -88,8 +49,9 @@ export class WalrusService {
       const data = await response.json();
       console.log("Walrus response:", data);
       
-      // Response format: { newlyCreated: { blobObject: { blobId, ... }, ... } }
-      // or { alreadyCertified: { blobId, ... } }
+      // Response format from Walrus docs:
+      // { newlyCreated: { blobObject: { blobId, storage: { endEpoch }, id } } }
+      // or { alreadyCertified: { blobId, endEpoch, event: { txDigest } } }
       if (data.newlyCreated) {
         return {
           blobId: data.newlyCreated.blobObject.blobId,
@@ -106,28 +68,17 @@ export class WalrusService {
       throw new Error("Unexpected Walrus response format");
     } catch (error: any) {
       console.error("Walrus upload error:", error);
-      
-      // Provide helpful error message
-      if (error.message?.includes('Failed to fetch')) {
-        throw new Error(
-          'Cannot connect to Walrus testnet. Please check:\n' +
-          '1. Internet connection\n' +
-          '2. Walrus testnet status\n' +
-          '3. CORS settings\n\n' +
-          'For demo purposes, you can enable mock mode in the code.'
-        );
-      }
-      
       throw error;
     }
   }
 
   /**
    * Download a file from Walrus
+   * Based on official example: GET /v1/blobs/{blob_id}
    */
   async downloadFile(blobId: string): Promise<Blob> {
     try {
-      const response = await fetch(`${this.aggregatorUrl}/v1/${blobId}`);
+      const response = await fetch(`${this.aggregatorUrl}/v1/blobs/${blobId}`);
       
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);
@@ -144,7 +95,7 @@ export class WalrusService {
    * Get the URL for a blob
    */
   getBlobUrl(blobId: string): string {
-    return `${this.aggregatorUrl}/v1/${blobId}`;
+    return `${this.aggregatorUrl}/v1/blobs/${blobId}`;
   }
 
   /**
@@ -152,7 +103,7 @@ export class WalrusService {
    */
   async blobExists(blobId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.aggregatorUrl}/v1/${blobId}`, {
+      const response = await fetch(`${this.aggregatorUrl}/v1/blobs/${blobId}`, {
         method: "HEAD",
       });
       return response.ok;
