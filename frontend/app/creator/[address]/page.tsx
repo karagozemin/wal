@@ -5,6 +5,7 @@ import { WalletButton } from "@/components/auth/WalletButton";
 import { SubscriptionCard } from "@/components/payment/SubscriptionCard";
 import { TipButton } from "@/components/payment/TipButton";
 import { ContentViewer } from "@/components/content/ContentViewer";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import Link from "next/link";
 import { suiClient } from "@/lib/sui/client";
 import { PACKAGE_ID } from "@/lib/sui/config";
@@ -28,9 +29,9 @@ interface Tier {
 interface Content {
   id: string;
   title: string;
-  description?: string;
-  walrusBlobId?: string;
-  sealPolicyId?: string;
+  description: string;
+  walrusBlobId: string;
+  sealPolicyId: string;
   isPublic: boolean;
   contentType: string;
   creator: string;
@@ -42,14 +43,22 @@ export default function CreatorProfile({
   params: Promise<{ address: string }>;
 }) {
   const { address } = use(params);
+  const currentAccount = useCurrentAccount();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [content, setContent] = useState<Content[]>([]);
+  const [userSubscribedTiers, setUserSubscribedTiers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchCreatorData();
   }, [address]);
+
+  useEffect(() => {
+    if (currentAccount?.address) {
+      checkUserSubscriptions();
+    }
+  }, [currentAccount?.address, tiers]);
 
   const fetchCreatorData = async () => {
     setLoading(true);
@@ -108,24 +117,89 @@ export default function CreatorProfile({
         limit: 50,
       });
 
-      const creatorContent = contentEvents.data
-        .filter((event: any) => event.parsedJson?.creator === address)
-        .map((event: any) => {
+      const creatorContentEvents = contentEvents.data.filter(
+        (event: any) => event.parsedJson?.creator === address
+      );
+
+      // Fetch full content objects to get walrus_blob_id
+      const creatorContent = await Promise.all(
+        creatorContentEvents.map(async (event: any) => {
           const data = event.parsedJson;
-          return {
-            id: data.content_id,
-            title: data.title,
-            isPublic: data.is_public,
-            contentType: "media",
-            creator: address,
-          };
-        });
+          try {
+            const contentObject = await suiClient.getObject({
+              id: data.content_id,
+              options: { showContent: true },
+            });
+
+            const fields = (contentObject.data?.content as any)?.fields || {};
+            
+            return {
+              id: data.content_id,
+              title: data.title || fields.title || "Untitled",
+              isPublic: data.is_public,
+              contentType: fields.content_type || "media",
+              creator: address,
+              walrusBlobId: fields.walrus_blob_id || "",
+              sealPolicyId: fields.seal_policy_id || "",
+              description: fields.description || "",
+            };
+          } catch (error) {
+            console.error(`Error fetching content object ${data.content_id}:`, error);
+            return {
+              id: data.content_id,
+              title: data.title,
+              isPublic: data.is_public,
+              contentType: "media",
+              creator: address,
+              walrusBlobId: "",
+              sealPolicyId: "",
+              description: "",
+            };
+          }
+        })
+      );
 
       setContent(creatorContent);
     } catch (error) {
       console.error("Error fetching creator data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkUserSubscriptions = async () => {
+    if (!currentAccount?.address || tiers.length === 0) return;
+
+    try {
+      // Get user's owned objects (Subscription NFTs)
+      const ownedObjects = await suiClient.getOwnedObjects({
+        owner: currentAccount.address,
+        options: {
+          showType: true,
+          showContent: true,
+        },
+      });
+
+      console.log("User's owned objects:", ownedObjects.data.length);
+
+      // Find Subscription NFTs
+      const userTierIds = new Set<string>();
+      ownedObjects.data.forEach((obj: any) => {
+        const type = obj.data?.type;
+        // Check if this is a Subscription NFT
+        if (type?.includes(`${PACKAGE_ID}::subscription::Subscription`)) {
+          const fields = (obj.data?.content as any)?.fields;
+          if (fields?.tier_id) {
+            userTierIds.add(fields.tier_id);
+            console.log("Found subscription to tier:", fields.tier_id);
+          }
+        }
+      });
+
+      setUserSubscribedTiers(userTierIds);
+      console.log("User subscribed to tiers:", Array.from(userTierIds));
+    } catch (error) {
+      console.error("Error checking subscriptions:", error);
     }
   };
 
@@ -231,7 +305,7 @@ export default function CreatorProfile({
                     key={tier.id}
                     tier={tier}
                     profileId={profile.id}
-                    isSubscribed={false}
+                    isSubscribed={userSubscribedTiers.has(tier.id)}
                   />
                 ))}
               </div>
@@ -247,14 +321,21 @@ export default function CreatorProfile({
               </div>
             ) : (
               <div className="space-y-6">
-                {content.map((item) => (
-                  <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                    <ContentViewer
-                      content={item}
-                      hasAccess={item.isPublic}
-                    />
-                  </div>
-                ))}
+                {content.map((item) => {
+                  // Determine if user has access to this content
+                  const isCreator = currentAccount?.address === address;
+                  const isSubscribed = userSubscribedTiers.size > 0; // Any subscription gives access for now
+                  const hasAccess = item.isPublic || isCreator || isSubscribed;
+
+                  return (
+                    <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                      <ContentViewer
+                        content={item}
+                        hasAccess={hasAccess}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </section>
