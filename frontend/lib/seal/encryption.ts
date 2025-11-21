@@ -19,6 +19,7 @@ export interface EncryptionResult {
   encryptedData: Uint8Array;
   policyId: string;
   iv: Uint8Array;
+  exportedKey?: Uint8Array; // Raw encryption key bytes for blockchain storage
 }
 
 export class SealService {
@@ -52,10 +53,14 @@ export class SealService {
       // In production, this would be on-chain
       this.storePolicyLocal(policyId, policy, key);
       
+      // Export key for blockchain storage
+      const exportedKey = await crypto.subtle.exportKey("raw", key);
+      
       return {
         encryptedData,
         policyId,
         iv,
+        exportedKey: new Uint8Array(exportedKey),
       };
     } catch (error) {
       console.error("Seal encryption error:", error);
@@ -71,7 +76,8 @@ export class SealService {
     policyId: string,
     iv: Uint8Array,
     userAddress: string,
-    hasAccess: boolean
+    hasAccess: boolean,
+    onChainKey?: string // Base64 encoded key from blockchain
   ): Promise<Uint8Array> {
     try {
       // Verify access
@@ -79,10 +85,60 @@ export class SealService {
         throw new Error("Access denied: User does not have required subscription or purchase");
       }
 
-      // Retrieve encryption key from policy
-      const key = await this.retrieveKeyFromPolicy(policyId);
+      let key: CryptoKey | null = null;
+
+      console.log("Decryption attempt:", {
+        hasOnChainKey: !!onChainKey,
+        onChainKeyLength: onChainKey?.length,
+        onChainKeyPreview: onChainKey?.substring(0, 50),
+        policyId,
+        hasAccess,
+      });
+
+      // Try to import key from on-chain data first
+      if (onChainKey && onChainKey.length > 0) {
+        try {
+          console.log("Attempting to decode on-chain key...");
+          // onChainKey format: "iv_bytes,policy_id:raw_key_bytes"
+          const decoded = atob(onChainKey);
+          console.log("Decoded key preview:", decoded.substring(0, 100));
+          
+          const parts = decoded.split(":");
+          console.log("Key parts count:", parts.length);
+          
+          if (parts.length === 3) {
+            const keyBytesString = parts[2];
+            const keyBytes = new Uint8Array(keyBytesString.split(",").map(Number));
+            console.log("Key bytes length:", keyBytes.length);
+            
+            key = await crypto.subtle.importKey(
+              "raw",
+              keyBytes,
+              { name: "AES-GCM" },
+              true,
+              ["encrypt", "decrypt"]
+            );
+            console.log("✅ Successfully imported key from blockchain");
+          } else {
+            console.warn("Invalid key format: expected 3 parts, got", parts.length);
+          }
+        } catch (error) {
+          console.error("Failed to import key from on-chain data:", error);
+        }
+      } else {
+        console.log("No on-chain key available, trying localStorage...");
+      }
+
+      // Fallback to localStorage (creator viewing their own content)
+      if (!key) {
+        key = await this.retrieveKeyFromPolicy(policyId);
+        if (key) {
+          console.log("✅ Retrieved key from localStorage");
+        }
+      }
       
       if (!key) {
+        console.error("❌ No encryption key found anywhere!");
         throw new Error("Encryption key not found for policy");
       }
 

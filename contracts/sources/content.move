@@ -26,6 +26,7 @@ module patreon::content {
         created_at: u64,
         content_type: String,
         is_archived: bool,
+        encryption_key: String, // Base64 encoded key for this specific content
     }
 
     /// One-time Purchase Access NFT
@@ -68,6 +69,7 @@ module patreon::content {
         is_pay_per_view: bool,
         ppv_price: u64,
         content_type: String,
+        encryption_key: String, // Base64 encoded key for this content
         clock: &Clock,
         ctx: &mut TxContext
     ) {
@@ -91,6 +93,7 @@ module patreon::content {
             created_at: clock::timestamp_ms(clock),
             content_type,
             is_archived: false,
+            encryption_key,
         };
 
         let content_id = object::id(&content);
@@ -234,6 +237,11 @@ module patreon::content {
     /// Check if content is archived
     public fun is_archived(content: &ContentPost): bool {
         content.is_archived
+    }
+
+    /// Get encryption key for content
+    public fun get_encryption_key(content: &ContentPost): String {
+        content.encryption_key
     }
 }
 

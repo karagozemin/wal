@@ -29,6 +29,7 @@ module patreon::subscription {
         creator: address,
         started_at: u64,
         expires_at: u64,
+        encryption_key: String, // Base64 encoded encryption key for content access
     }
 
     /// Event when tier is created
@@ -102,6 +103,7 @@ module patreon::subscription {
         tier: &mut SubscriptionTier,
         profile: &mut CreatorProfile,
         payment: Coin<SUI>,
+        encryption_key: String, // Base64 encoded key from frontend
         clock: &Clock,
         ctx: &mut TxContext
     ) {
@@ -128,6 +130,7 @@ module patreon::subscription {
             creator: tier.creator,
             started_at: current_time,
             expires_at,
+            encryption_key,
         };
 
         let subscription_id = object::id(&subscription);
@@ -178,7 +181,7 @@ module patreon::subscription {
         tier: &mut SubscriptionTier,
         profile: &mut CreatorProfile,
     ) {
-        let Subscription { id, tier_id: _, subscriber, creator: _, started_at: _, expires_at: _ } = subscription;
+        let Subscription { id, tier_id: _, subscriber, creator: _, started_at: _, expires_at: _, encryption_key: _ } = subscription;
 
         // Update counts
         tier.current_subscribers = tier.current_subscribers - 1;

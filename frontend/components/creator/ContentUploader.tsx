@@ -49,6 +49,8 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
       // Step 2: Encrypt with Seal (if not public)
       let encryptedDataWithIV: Uint8Array = fileData;
       let policyId = "public";
+      let ivForKey: Uint8Array | null = null;
+      let exportedKey: Uint8Array | null = null;
 
       if (!isPublic) {
         setProgress("Encrypting content...");
@@ -60,6 +62,8 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
         const encryptedData = new Uint8Array(result.encryptedData);
         const iv = new Uint8Array(result.iv);
         policyId = result.policyId;
+        ivForKey = iv; // Store for later use
+        exportedKey = result.exportedKey || null;
         
         // Prepend IV to encrypted data (first 12 bytes = IV, rest = encrypted content)
         // This allows anyone with access to decrypt without localStorage
@@ -80,6 +84,22 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
       
       const clockObjectId = "0x6"; // Sui Clock object
       
+      // Convert encryption key to base64 for storage (IV + policyId + raw key bytes)
+      let keyBase64 = "";
+      if (!isPublic && exportedKey && ivForKey) {
+        const keyString = Array.from(ivForKey).join(",") + ":" + 
+                         policyId + ":" + 
+                         Array.from(exportedKey).join(",");
+        keyBase64 = btoa(keyString);
+        console.log("Storing key to blockchain:", {
+          ivLength: ivForKey.length,
+          keyLength: exportedKey.length,
+          policyId,
+          encodedLength: keyBase64.length,
+          preview: keyString.substring(0, 100)
+        });
+      }
+      
       tx.moveCall({
         target: `${PACKAGE_ID}::content::create_content`,
         arguments: [
@@ -93,6 +113,7 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
           tx.pure.bool(isPPV),
           tx.pure.u64(isPPV ? BigInt(ppvPrice) * BigInt(1_000_000_000) : 0),
           tx.pure.string(file.type.split("/")[0] || "file"),
+          tx.pure.string(keyBase64), // Store encryption key on-chain
           tx.object(clockObjectId),
         ],
       });

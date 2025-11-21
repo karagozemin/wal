@@ -15,6 +15,7 @@ interface ContentViewerProps {
     isPublic: boolean;
     contentType: string;
     creator: string;
+    encryptionKey?: string; // Base64 encoded key from blockchain
   };
   hasAccess: boolean;
   createdAt?: string;
@@ -57,6 +58,11 @@ export function ContentViewer({ content, hasAccess, createdAt, compact = false }
         const encryptedData = dataWithIV.slice(12);
         
         console.log("Decrypting content with IV length:", iv.length, "Data length:", encryptedData.length);
+        console.log("Content encryption key:", {
+          hasKey: !!content.encryptionKey,
+          keyLength: content.encryptionKey?.length,
+          keyPreview: content.encryptionKey?.substring(0, 50),
+        });
         
         // Decrypt
         const decryptedData = await sealService.decryptContent(
@@ -64,7 +70,8 @@ export function ContentViewer({ content, hasAccess, createdAt, compact = false }
           content.sealPolicyId,
           iv,
           account?.address || "",
-          hasAccess
+          hasAccess,
+          content.encryptionKey // Pass on-chain key
         );
         
         // Create URL from decrypted data

@@ -36,12 +36,16 @@ export function SubscriptionCard({ tier, profileId, isSubscribed }: Subscription
       
       const clockObjectId = "0x6"; // Sui Clock object
       
+      // Generate encryption key for subscriber
+      const subscriberKey = btoa("subscriber_key_" + tier.id + "_" + Date.now());
+      
       tx.moveCall({
         target: `${PACKAGE_ID}::subscription::subscribe`,
         arguments: [
           tx.object(tier.id),
           tx.object(profileId),
           coin,
+          tx.pure.string(subscriberKey), // Pass encryption key
           tx.object(clockObjectId),
         ],
       });

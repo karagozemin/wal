@@ -133,6 +133,11 @@ export default function CreatorProfile({
 
             const fields = (contentObject.data?.content as any)?.fields || {};
             
+            // Skip archived content
+            if (fields.is_archived === true) {
+              return null;
+            }
+            
             return {
               id: data.content_id,
               title: data.title || fields.title || "Untitled",
@@ -140,26 +145,18 @@ export default function CreatorProfile({
               contentType: fields.content_type || "media",
               creator: address,
               walrusBlobId: fields.walrus_blob_id || "",
+              encryptionKey: fields.encryption_key || "",
               sealPolicyId: fields.seal_policy_id || "",
               description: fields.description || "",
             };
           } catch (error) {
             console.error(`Error fetching content object ${data.content_id}:`, error);
-            return {
-              id: data.content_id,
-              title: data.title,
-              isPublic: data.is_public,
-              contentType: "media",
-              creator: address,
-              walrusBlobId: "",
-              sealPolicyId: "",
-              description: "",
-            };
+            return null;
           }
         })
       );
 
-      setContent(creatorContent);
+      setContent(creatorContent.filter((c) => c !== null));
     } catch (error) {
       console.error("Error fetching creator data:", error);
     } finally {
