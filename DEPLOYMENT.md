@@ -2,7 +2,7 @@
 
 ## Sui Testnet Deployment
 
-**Package ID:** `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35`
+**Package ID:** `0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544`
 
 **Transaction Digest:** `AbWvuQAuuiNPZ7u8hEigCnvxvQbw2PH4uej1VgXEtJ9Z`
 
@@ -20,10 +20,10 @@
 ### Contract Addresses
 
 All modules are under the main package:
-- `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35::creator_profile`
-- `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35::subscription`
-- `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35::content`
-- `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35::payment`
+- `0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544::creator_profile`
+- `0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544::subscription`
+- `0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544::content`
+- `0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544::payment`
 
 ### Gas Costs
 
@@ -39,5 +39,5 @@ All modules are under the main package:
 ### Verification
 
 You can verify the deployment on Sui Explorer:
-https://suiscan.xyz/testnet/object/0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35
+https://suiscan.xyz/testnet/object/0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544
 

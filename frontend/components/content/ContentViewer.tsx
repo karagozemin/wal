@@ -242,8 +242,30 @@ export function ContentViewer({
             
             const decryptedBlob = new Blob([new Uint8Array(decryptedData)], { type: content.contentType || 'application/octet-stream' });
             
+            // Get subscription expiry for cache security
+            let subscriptionExpiresAt: number | undefined;
+            try {
+              const subscriptionObj = await suiClient.getObject({
+                id: subscriptionNFTId,
+                options: { showContent: true },
+              });
+              if (subscriptionObj.data?.content?.dataType === 'moveObject') {
+                const fields = subscriptionObj.data.content.fields as any;
+                subscriptionExpiresAt = parseInt(fields.expires_at);
+                console.log('🔒 Subscription expires at:', new Date(subscriptionExpiresAt).toLocaleString());
+              }
+            } catch (e) {
+              console.warn('⚠️ Could not fetch subscription expiry:', e);
+            }
+            
             // Cache to IndexedDB for future loads (skip decrypt next time!)
-            await cacheDecryptedContent(content.id, decryptedBlob, content.requiredTierId).catch(err => {
+            // Cache expires with subscription for security
+            await cacheDecryptedContent(
+              content.id, 
+              decryptedBlob, 
+              content.requiredTierId,
+              subscriptionExpiresAt
+            ).catch(err => {
               console.warn("⚠️ Failed to cache content (non-fatal):", err);
             });
             
@@ -397,8 +419,39 @@ export function ContentViewer({
           
           const decryptedBlob = new Blob([decryptedData.slice()], { type: content.contentType || 'application/octet-stream' });
           
+          // Get subscription expiry for cache security
+          let subscriptionExpiresAt: number | undefined;
+          if (currentAccount?.address && content.requiredTierId) {
+            try {
+              const subscription = await findUserSubscriptionForTier(
+                suiClient,
+                currentAccount.address,
+                content.requiredTierId
+              );
+              if (subscription) {
+                const subscriptionObj = await suiClient.getObject({
+                  id: subscription,
+                  options: { showContent: true },
+                });
+                if (subscriptionObj.data?.content?.dataType === 'moveObject') {
+                  const fields = subscriptionObj.data.content.fields as any;
+                  subscriptionExpiresAt = parseInt(fields.expires_at);
+                  console.log('🔒 Subscription expires at:', new Date(subscriptionExpiresAt).toLocaleString());
+                }
+              }
+            } catch (e) {
+              console.warn('⚠️ Could not fetch subscription expiry:', e);
+            }
+          }
+          
           // Cache to IndexedDB for future loads
-          await cacheDecryptedContent(content.id, decryptedBlob, content.requiredTierId).catch(err => {
+          // Cache expires with subscription for security
+          await cacheDecryptedContent(
+            content.id, 
+            decryptedBlob, 
+            content.requiredTierId,
+            subscriptionExpiresAt
+          ).catch(err => {
             console.warn("⚠️ Failed to cache content (non-fatal):", err);
           });
           

@@ -35,7 +35,7 @@ Create a `.env.local` file in the `frontend` directory:
 NEXT_PUBLIC_SUI_NETWORK=testnet
 NEXT_PUBLIC_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
-NEXT_PUBLIC_PACKAGE_ID=0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35
+NEXT_PUBLIC_PACKAGE_ID=0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544
 ```
 
 ### 4. Run Development Server

@@ -285,36 +285,42 @@ module patreon::subscription {
         });
     }
 
-    /// Seal SDK approval function - CORRECT FORMAT
+    /// Seal SDK approval function - WITH EXPIRY CHECK
     /// First parameter MUST be vector<u8> as per Seal SDK specification
     /// This function checks if the sender has access to the given identity (tier/content)
     /// 
     /// IMPORTANT: Seal SDK calls this via dry_run_transaction_block
     /// The function must NOT abort if user has access
     /// It MUST abort if user does NOT have access
+    /// 
+    /// NEW: Now includes expiry validation for security
     public entry fun seal_approve(
-        _id: vector<u8>,  // Identity bytes (tier ID or policy ID) - prefixed with underscore as unused
-        _ctx: &TxContext
+        subscription: &Subscription,  // Subscription NFT to validate
+        clock: &Clock,                // Clock for expiry check
+        ctx: &TxContext
     ) {
-        // NOTE: This is a simplified implementation for Seal SDK compatibility
-        // 
+        let sender = tx_context::sender(ctx);
+        
+        // 1. Verify the user owns this subscription
+        assert!(subscription.subscriber == sender, ENotSubscriber);
+        
+        // 2. ✅ VERIFY SUBSCRIPTION IS NOT EXPIRED
+        let current_time = clock::timestamp_ms(clock);
+        assert!(current_time < subscription.expires_at, ESubscriptionExpired);
+        
+        // 3. Emit access proof event (for logging/tracking)
+        event::emit(AccessProofCreated {
+            subscriber: sender,
+            tier_id: subscription.tier_id,
+            content_id: subscription.tier_id,
+            timestamp: current_time,
+        });
+        
         // Seal SDK workflow:
-        // 1. User signs transaction calling this function
+        // 1. User signs transaction calling this function with their Subscription NFT
         // 2. Key servers call dry_run to validate access
         // 3. If function completes without abort -> access granted
-        // 4. If function aborts -> access denied
-        //
-        // For a production system, you would:
-        // - Parse _id bytes to get tier_id or content_id
-        // - Look up sender's subscription from global state
-        // - Check if subscription is active
-        // - abort() if no valid subscription
-        //
-        // For now, we allow all requests (access control via SessionKey signature)
-        // This is acceptable because:
-        // - User must sign with their wallet (proves identity)
-        // - Seal SDK validates the signature
-        // - Frontend checks subscription before attempting decrypt
+        // 4. If function aborts (expired/wrong owner) -> access denied
     }
 
     /// Seal SDK approval function for creators

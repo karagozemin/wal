@@ -13,6 +13,7 @@ const { networkConfig, useNetworkVariable, useNetworkVariables } =
 
 export { networkConfig, useNetworkVariable, useNetworkVariables };
 
-export const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID || "0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35";
+// Updated: 2024-11-22 - Added expiry check to seal_approve()
+export const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID || "0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544";
 export const SUI_NETWORK = (process.env.NEXT_PUBLIC_SUI_NETWORK || "testnet") as "testnet" | "mainnet";
 

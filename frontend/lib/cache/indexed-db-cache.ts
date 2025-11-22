@@ -23,6 +23,7 @@ interface CachedContent {
   expiresAt: number;
   size: number;
   tierId?: string;
+  subscriptionExpiresAt?: number; // Subscription expiry timestamp for security
 }
 
 /**
@@ -60,11 +61,13 @@ async function openDB(): Promise<IDBDatabase> {
 
 /**
  * Cache decrypted content to IndexedDB
+ * Cache expiry is limited by subscription expiry for security
  */
 export async function cacheDecryptedContent(
   contentId: string,
   blob: Blob,
-  tierId?: string
+  tierId?: string,
+  subscriptionExpiresAt?: number
 ): Promise<boolean> {
   try {
     // Check size limit
@@ -81,14 +84,22 @@ export async function cacheDecryptedContent(
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     
+    // Calculate cache expiry: MIN(8 hours, subscription expiry)
+    // This prevents cached content from being accessible after subscription expires
+    const cacheExpiry = Date.now() + CACHE_DURATION;
+    const finalExpiry = subscriptionExpiresAt 
+      ? Math.min(cacheExpiry, subscriptionExpiresAt)
+      : cacheExpiry;
+    
     const cached: CachedContent = {
       contentId,
       blob,
       contentType: blob.type,
       decryptedAt: Date.now(),
-      expiresAt: Date.now() + CACHE_DURATION,
+      expiresAt: finalExpiry, // Limited by subscription expiry!
       size: blob.size,
       tierId,
+      subscriptionExpiresAt,
     };
     
     await new Promise<void>((resolve, reject) => {
@@ -97,10 +108,19 @@ export async function cacheDecryptedContent(
       request.onerror = () => reject(request.error);
     });
     
+    const hoursValid = Math.floor((finalExpiry - Date.now()) / 1000 / 60 / 60);
+    const daysValid = Math.floor((finalExpiry - Date.now()) / 1000 / 60 / 60 / 24);
+    
     console.log('💾 Content cached to IndexedDB:', {
       contentId: contentId.slice(0, 10) + '...',
       size: (blob.size / 1024).toFixed(2) + 'KB',
-      expiresIn: '8 hours',
+      cacheExpiry: new Date(cacheExpiry).toLocaleString(),
+      subscriptionExpiry: subscriptionExpiresAt 
+        ? new Date(subscriptionExpiresAt).toLocaleString() 
+        : 'N/A (public content)',
+      finalExpiry: new Date(finalExpiry).toLocaleString(),
+      validFor: daysValid > 0 ? `${daysValid}d ${hoursValid % 24}h` : `${hoursValid}h`,
+      securityNote: subscriptionExpiresAt ? '🔒 Cache expires with subscription' : '⏰ Cache expires in 8h',
     });
     
     // Clean up expired entries in background

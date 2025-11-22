@@ -204,27 +204,23 @@ export class RealSealService {
         subscriptionNFT: subscriptionNFTId,
       });
 
-      // Build transaction that calls seal_approve with CORRECT format
-      // First parameter MUST be vector<u8> (the policy/identity ID)
+      // Build transaction that calls seal_approve with EXPIRY CHECK
+      // NEW: Now passes Subscription NFT and Clock for expiry validation
       const tx = new Transaction();
       
-      // Convert identity (tier ID / policy ID address string) to bytes
-      // Remove "0x" prefix and convert hex to bytes
-      const identityHex = identity.startsWith('0x') ? identity.slice(2) : identity;
-      const identityBytes = new Uint8Array(
-        identityHex.match(/.{1,2}/g)?.map((byte: string) => parseInt(byte, 16)) || []
-      );
+      const clockObjectId = '0x0000000000000000000000000000000000000000000000000000000000000006'; // Sui Clock
       
       console.log('📝 Building seal_approve transaction...', {
-        identity,
-        identityBytes: identityBytes.length,
-        format: 'vector<u8> as per Seal SDK spec'
+        subscriptionNFTId,
+        clockObjectId,
+        note: 'NEW: Includes expiry validation!',
       });
       
       tx.moveCall({
         target: `${packageId}::subscription::seal_approve`,
         arguments: [
-          tx.pure('vector<u8>', Array.from(identityBytes)),  // ✅ CORRECT: vector<u8>
+          tx.object(subscriptionNFTId),  // ✅ Subscription NFT
+          tx.object(clockObjectId),      // ✅ Clock for expiry check
         ],
       });
 

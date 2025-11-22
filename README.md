@@ -88,7 +88,7 @@ Create a `.env.local` file in the `frontend` directory:
 NEXT_PUBLIC_SUI_NETWORK=testnet
 NEXT_PUBLIC_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
-NEXT_PUBLIC_PACKAGE_ID=0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35
+NEXT_PUBLIC_PACKAGE_ID=0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544
 ```
 
 ### Running Locally
@@ -115,9 +115,13 @@ To avoid re-decryption and re-signing on every page refresh, decrypted content i
 
 ### **Cache Behavior:**
 - **Max Size**: 20MB per content (larger files are not cached)
-- **Duration**: 8 hours (automatically cleaned up)
+- **Duration**: MIN(8 hours, subscription expiry) - **Security Feature!**
 - **Storage**: Browser's IndexedDB (separate from localStorage)
-- **Security**: Cleared on logout, subscription cancel, or expiry
+- **Security**: 
+  - Cache expires with subscription (prevents post-expiry access)
+  - Cleared on logout
+  - Cleared on subscription cancel
+  - Auto-cleanup of expired entries
 
 ### **How to Monitor:**
 Add the `<CacheStats />` component to any page to see cache statistics:
@@ -184,9 +188,9 @@ This project fits into the following tracks:
 
 ### Testnet Deployment
 
-- **Package ID**: `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35`
+- **Package ID**: `0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544`
 - **Network**: Sui Testnet
-- **Explorer**: [View on SuiScan](https://suiscan.xyz/testnet/object/0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35)
+- **Explorer**: [View on SuiScan](https://suiscan.xyz/testnet/object/0x3957388874954b7da66b555c6ea2756ad95dfc670881fed7a89e0b427753e544)
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment details.
 
