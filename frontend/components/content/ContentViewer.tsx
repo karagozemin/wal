@@ -18,13 +18,25 @@ interface ContentViewerProps {
     contentType: string;
     creator: string;
     encryptionKey?: string; // Base64 encoded key from blockchain
+    requiredTierId?: string;
+    isPPV?: boolean;
+    ppvPrice?: string;
   };
   hasAccess: boolean;
   createdAt?: string;
   compact?: boolean; // Thumbnail mode for dashboard
+  requiredTierName?: string; // Name of the tier required for access
+  showLockedPreview?: boolean; // Show blurred preview for locked content
 }
 
-export function ContentViewer({ content, hasAccess, createdAt, compact = false }: ContentViewerProps) {
+export function ContentViewer({ 
+  content, 
+  hasAccess, 
+  createdAt, 
+  compact = false,
+  requiredTierName,
+  showLockedPreview = false 
+}: ContentViewerProps) {
   const account = useCurrentAccount();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -191,6 +203,50 @@ export function ContentViewer({ content, hasAccess, createdAt, compact = false }
   };
 
   if (!hasAccess && !content.isPublic) {
+    // Show blurred preview if enabled
+    if (showLockedPreview) {
+      return (
+        <div className="bg-white rounded-lg overflow-hidden relative">
+          {/* Blurred Content Preview */}
+          <div className="relative">
+            {/* Placeholder blurred image */}
+            <div className="w-full h-64 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 blur-xl" />
+            
+            {/* Lock Overlay */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+              <div className="text-center text-white p-6">
+                <div className="bg-white/20 backdrop-blur-md rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-white/30">
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold mb-2">🔒 Locked Content</h3>
+                {requiredTierName && (
+                  <p className="text-sm mb-3">
+                    Subscribe to <span className="font-semibold">{requiredTierName}</span> tier to unlock
+                  </p>
+                )}
+                {content.isPPV && content.ppvPrice && (
+                  <p className="text-sm mb-3">
+                    Or purchase for <span className="font-semibold">{content.ppvPrice} SUI</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Content Info */}
+          <div className="p-4 border-t">
+            <h4 className="font-semibold text-gray-900 mb-1">{content.title}</h4>
+            {content.description && (
+              <p className="text-sm text-gray-600 line-clamp-2">{content.description}</p>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // Full locked view (for non-compact mode)
     return (
       <div className="bg-white">
         {/* Header */}
@@ -200,6 +256,17 @@ export function ContentViewer({ content, hasAccess, createdAt, compact = false }
               <h3 className="text-xl font-bold text-gray-900 mb-1">{content.title}</h3>
               {createdAt && (
                 <p className="text-sm text-gray-500">{createdAt}</p>
+              )}
+              {requiredTierName && (
+                <div className="mt-2">
+                  <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                      <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                    </svg>
+                    {requiredTierName} Tier Required
+                  </span>
+                </div>
               )}
             </div>
             <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
@@ -221,8 +288,19 @@ export function ContentViewer({ content, hasAccess, createdAt, compact = false }
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Join to unlock</h3>
-          <p className="text-gray-600 mb-6">Subscribe or purchase to access this content</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">🔒 Join to unlock</h3>
+          {requiredTierName ? (
+            <p className="text-gray-600 mb-6">
+              Subscribe to the <strong>{requiredTierName}</strong> tier to access this content
+            </p>
+          ) : (
+            <p className="text-gray-600 mb-6">Subscribe or purchase to access this content</p>
+          )}
+          {content.isPPV && content.ppvPrice && (
+            <p className="text-sm text-gray-500">
+              Or purchase for <strong>{content.ppvPrice} SUI</strong>
+            </p>
+          )}
         </div>
 
         {/* Actions */}

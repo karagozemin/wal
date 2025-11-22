@@ -35,6 +35,10 @@ interface Content {
   isPublic: boolean;
   contentType: string;
   creator: string;
+  encryptionKey?: string;
+  requiredTierId?: string;
+  isPPV?: boolean;
+  ppvPrice?: string;
 }
 
 export default function CreatorProfile({
@@ -328,14 +332,25 @@ export default function CreatorProfile({
                 {content.map((item) => {
                   // Determine if user has access to this content
                   const isCreator = currentAccount?.address === address;
-                  const isSubscribed = userSubscribedTiers.size > 0; // Any subscription gives access for now
-                  const hasAccess = item.isPublic || isCreator || isSubscribed;
+                  
+                  // Check if user has subscribed to the required tier for this content
+                  const hasRequiredTier = item.requiredTierId 
+                    ? userSubscribedTiers.has(item.requiredTierId)
+                    : false;
+                  
+                  // Access granted if: public, creator, or has required tier subscription
+                  const hasAccess = item.isPublic || isCreator || hasRequiredTier;
+                  
+                  // Find the tier name for this content
+                  const requiredTier = tiers.find(t => t.id === item.requiredTierId);
 
                   return (
                     <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                       <ContentViewer
                         content={item}
                         hasAccess={hasAccess}
+                        requiredTierName={requiredTier?.name}
+                        showLockedPreview={!hasAccess && !item.isPublic}
                       />
                     </div>
                   );
