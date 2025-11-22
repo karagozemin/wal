@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import { PACKAGE_ID } from "@/lib/sui/config";
+import { RenewalButton } from "@/components/subscription/RenewalButton";
+import { CancelButton } from "@/components/subscription/CancelButton";
 
 interface SubscriptionCardProps {
   tier: {
@@ -16,9 +18,13 @@ interface SubscriptionCardProps {
   };
   profileId: string;
   isSubscribed?: boolean;
+  subscription?: {
+    id: string;
+    expiresAt: number;
+  };
 }
 
-export function SubscriptionCard({ tier, profileId, isSubscribed }: SubscriptionCardProps) {
+export function SubscriptionCard({ tier, profileId, isSubscribed, subscription }: SubscriptionCardProps) {
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const [subscribing, setSubscribing] = useState(false);
 
@@ -146,14 +152,39 @@ export function SubscriptionCard({ tier, profileId, isSubscribed }: Subscription
           </div>
         </div>
 
-        {/* Subscribe Button */}
-        {isSubscribed ? (
-          <div className="bg-green-50 border-2 border-green-500 text-green-700 py-3 px-4 rounded-lg text-center font-semibold flex items-center justify-center gap-2">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Subscribed
-          </div>
+        {/* Subscribe Button or Renewal Button */}
+        {isSubscribed && subscription ? (
+          <>
+            <div className="bg-green-50 border-2 border-green-500 text-green-700 py-3 px-4 rounded-lg text-center font-semibold flex items-center justify-center gap-2 mb-2">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              ✅ Active Subscription
+            </div>
+            <p className="text-xs text-center text-gray-500 mb-3">
+              Expires: {new Date(subscription.expiresAt).toLocaleDateString()}
+            </p>
+            <RenewalButton
+              subscription={{
+                id: subscription.id,
+                tierId: tier.id,
+                tierName: tier.name,
+                tierPrice: tier.pricePerMonth,
+                expiresAt: subscription.expiresAt,
+              }}
+              profileId={profileId}
+            />
+            <div className="mt-3">
+              <CancelButton
+                subscription={{
+                  id: subscription.id,
+                  tierId: tier.id,
+                  tierName: tier.name,
+                }}
+                profileId={profileId}
+              />
+            </div>
+          </>
         ) : (
           <button
             onClick={handleSubscribe}

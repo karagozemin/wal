@@ -53,6 +53,10 @@ export default function CreatorProfile({
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [content, setContent] = useState<Content[]>([]);
   const [userSubscribedTiers, setUserSubscribedTiers] = useState<Set<string>>(new Set());
+  const [userSubscriptions, setUserSubscriptions] = useState<Map<string, {
+    id: string;
+    expiresAt: number;
+  }>>(new Map());
 
   useEffect(() => {
     fetchCreatorData();
@@ -192,19 +196,30 @@ export default function CreatorProfile({
 
       // Find Subscription NFTs
       const userTierIds = new Set<string>();
+      const subscriptionMap = new Map<string, { id: string; expiresAt: number }>();
+      
       ownedObjects.data.forEach((obj: any) => {
         const type = obj.data?.type;
         // Check if this is a Subscription NFT
         if (type?.includes(`${PACKAGE_ID}::subscription::Subscription`)) {
           const fields = (obj.data?.content as any)?.fields;
           if (fields?.tier_id) {
-            userTierIds.add(fields.tier_id);
-            console.log("Found subscription to tier:", fields.tier_id);
+            const tierId = fields.tier_id;
+            const subscriptionId = obj.data?.objectId;
+            const expiresAt = parseInt(fields.expires_at);
+            
+            userTierIds.add(tierId);
+            subscriptionMap.set(tierId, {
+              id: subscriptionId,
+              expiresAt: expiresAt,
+            });
+            console.log("Found subscription to tier:", tierId, "expires:", new Date(expiresAt).toLocaleString());
           }
         }
       });
 
       setUserSubscribedTiers(userTierIds);
+      setUserSubscriptions(subscriptionMap);
       console.log("User subscribed to tiers:", Array.from(userTierIds));
     } catch (error) {
       console.error("Error checking subscriptions:", error);
@@ -314,6 +329,7 @@ export default function CreatorProfile({
                     tier={tier}
                     profileId={profile.id}
                     isSubscribed={userSubscribedTiers.has(tier.id)}
+                    subscription={userSubscriptions.get(tier.id)}
                   />
                 ))}
               </div>

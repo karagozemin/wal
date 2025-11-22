@@ -6,6 +6,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { WalletButton } from "@/components/auth/WalletButton";
 import { ContentUploader } from "@/components/creator/ContentUploader";
 import { ContentViewer } from "@/components/content/ContentViewer";
+import { EditContentModal } from "@/components/content/EditContentModal";
 import { PACKAGE_ID } from "@/lib/sui/config";
 import { suiClient } from "@/lib/sui/client";
 import Link from "next/link";
@@ -19,7 +20,9 @@ export default function Dashboard() {
   const [hasProfile, setHasProfile] = useState(false);
   const [profileId, setProfileId] = useState("");
   const [creatingTier, setCreatingTier] = useState(false);
-  const [tiers, setTiers] = useState<Array<{ id: string; name: string }>>([]);
+  const [tiers, setTiers] = useState<Array<{ id: string; name: string; currentSubscribers: number; pricePerMonth: string }>>([]);
+  const [totalSubscribers, setTotalSubscribers] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [myContent, setMyContent] = useState<Array<{
     content_id: string;
     title: string;
@@ -41,11 +44,12 @@ export default function Dashboard() {
   const [tierPrice, setTierPrice] = useState("");
   const [maxSubscribers, setMaxSubscribers] = useState("100");
   
-  // Edit/Delete modal states
-  const [editingContent, setEditingContent] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
+  // Edit modal state
+  const [editingContent, setEditingContent] = useState<{
+    id: string;
+    title: string;
+    description: string;
+  } | null>(null);
   
   // Archive/Unarchive states
   const [showArchived, setShowArchived] = useState(false);
@@ -192,19 +196,56 @@ export default function Dashboard() {
         limit: 50,
       });
 
-      // Filter tiers for this creator
-      const profileTiers = events.data
-        .filter((event: any) => {
-          // Check if this tier belongs to our profile's creator
-          return event.parsedJson?.creator === account?.address;
-        })
-        .map((event: any) => ({
-          id: event.parsedJson?.tier_id,
-          name: event.parsedJson?.name,
-        }));
+      // Filter tiers for this creator and fetch full tier data
+      const profileTierEvents = events.data.filter((event: any) => {
+        return event.parsedJson?.creator === account?.address;
+      });
 
-      setTiers(profileTiers);
-      console.log("Found tiers:", profileTiers);
+      // Fetch full tier objects to get current_subscribers
+      const tiersWithDetails = await Promise.all(
+        profileTierEvents.map(async (event: any) => {
+          try {
+            const tierId = event.parsedJson?.tier_id;
+            const tierObject = await suiClient.getObject({
+              id: tierId,
+              options: { showContent: true },
+            });
+
+            const fields = (tierObject.data?.content as any)?.fields || {};
+            return {
+              id: tierId,
+              name: event.parsedJson?.name || fields.name || "Untitled",
+              currentSubscribers: parseInt(fields.current_subscribers || "0"),
+              pricePerMonth: (parseInt(fields.price_per_month || "0") / 1e9).toString(),
+            };
+          } catch (error) {
+            console.error("Error fetching tier details:", error);
+            return {
+              id: event.parsedJson?.tier_id,
+              name: event.parsedJson?.name || "Untitled",
+              currentSubscribers: 0,
+              pricePerMonth: "0",
+            };
+          }
+        })
+      );
+
+      setTiers(tiersWithDetails);
+      
+      // Calculate analytics
+      const totalSubs = tiersWithDetails.reduce((sum, tier) => sum + tier.currentSubscribers, 0);
+      const monthlyRevenue = tiersWithDetails.reduce(
+        (sum, tier) => sum + (tier.currentSubscribers * parseFloat(tier.pricePerMonth)),
+        0
+      );
+      
+      setTotalSubscribers(totalSubs);
+      setTotalRevenue(monthlyRevenue);
+      
+      console.log("Found tiers with analytics:", tiersWithDetails, {
+        totalSubs,
+        monthlyRevenue: monthlyRevenue.toFixed(2) + " SUI",
+      });
     } catch (error) {
       console.error("Error fetching tiers:", error);
     }
@@ -318,59 +359,14 @@ export default function Dashboard() {
   };
 
   const handleEditContent = (content: typeof myContent[0]) => {
-    setEditingContent(content.content_id);
-    setEditTitle(content.title);
-    setEditDescription(content.description);
+    setEditingContent({
+      id: content.content_id,
+      title: content.title,
+      description: content.description,
+    });
   };
 
-  const handleUpdateContent = async () => {
-    if (!editingContent || !editTitle || !editDescription) {
-      alert("Please fill in all fields");
-      return;
-    }
-
-    setIsUpdating(true);
-    try {
-      const tx = new Transaction();
-      
-      tx.moveCall({
-        target: `${PACKAGE_ID}::content::update_content`,
-        arguments: [
-          tx.object(editingContent),
-          tx.pure.string(editTitle),
-          tx.pure.string(editDescription),
-        ],
-      });
-
-      signAndExecute(
-        { transaction: tx },
-        {
-          onSuccess: async (result: any) => {
-            console.log("Content updated:", result);
-            alert("Content updated successfully! ✅");
-            
-            // Re-fetch content
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            await fetchMyContent();
-            
-            // Close modal
-            setEditingContent(null);
-            setEditTitle("");
-            setEditDescription("");
-          },
-          onError: (error) => {
-            console.error("Update failed:", error);
-            alert(`Update failed: ${error.message}`);
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Update error:", error);
-      alert(`Update failed: ${error}`);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  // Edit content handled by EditContentModal component
 
   const handleArchiveContent = async (contentId: string) => {
     if (!confirm("Archive this content? It will be hidden from your profile.")) {
@@ -558,19 +554,48 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-8">
-              {/* Stats */}
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="text-sm text-gray-600 mb-1">Total Subscribers</div>
-                  <div className="text-3xl font-bold text-gray-900">0</div>
+              {/* Stats - Real Analytics */}
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-md p-6 border-2 border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-blue-700">Total Subscribers</div>
+                    <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                  </div>
+                  <div className="text-4xl font-bold text-blue-900">{totalSubscribers}</div>
+                  <div className="text-xs text-blue-600 mt-1">Across {tiers.length} tier{tiers.length !== 1 ? 's' : ''}</div>
                 </div>
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="text-sm text-gray-600 mb-1">Monthly Revenue</div>
-                  <div className="text-3xl font-bold text-gray-900">0 SUI</div>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-md p-6 border-2 border-green-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-green-700">Monthly Revenue</div>
+                    <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="text-4xl font-bold text-green-900">{totalRevenue.toFixed(2)}</div>
+                  <div className="text-xs text-green-600 mt-1">SUI per month</div>
                 </div>
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="text-sm text-gray-600 mb-1">Total Content</div>
-                  <div className="text-3xl font-bold text-gray-900">{myContent.length}</div>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-md p-6 border-2 border-purple-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-purple-700">Total Content</div>
+                    <svg className="w-8 h-8 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="text-4xl font-bold text-purple-900">{myContent.filter(c => !c.is_archived).length}</div>
+                  <div className="text-xs text-purple-600 mt-1">{myContent.filter(c => c.is_archived).length} archived</div>
+                </div>
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-md p-6 border-2 border-orange-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-orange-700">Active Tiers</div>
+                    <svg className="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                  </div>
+                  <div className="text-4xl font-bold text-orange-900">{tiers.length}</div>
+                  <div className="text-xs text-orange-600 mt-1">Subscription options</div>
                 </div>
               </div>
 
@@ -883,62 +908,16 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Edit Modal */}
+        {/* Edit Content Modal */}
         {editingContent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Edit Content</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900"
-                    placeholder="Content title"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 resize-none"
-                    placeholder="Content description"
-                    rows={4}
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setEditingContent(null);
-                    setEditTitle("");
-                    setEditDescription("");
-                  }}
-                  disabled={isUpdating}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateContent}
-                  disabled={isUpdating || !editTitle || !editDescription}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium"
-                >
-                  {isUpdating ? "Updating..." : "Update"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <EditContentModal
+            content={editingContent}
+            isOpen={true}
+            onClose={() => setEditingContent(null)}
+            onSuccess={async () => {
+              await fetchMyContent();
+            }}
+          />
         )}
       </div>
   );
