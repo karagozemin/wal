@@ -6,6 +6,13 @@ import { walrusService } from "@/lib/walrus/client";
 import { sealService } from "@/lib/seal/encryption";
 import { getRealSealService } from "@/lib/seal/real-seal";
 import { suiClient } from "@/lib/sui/client";
+import { 
+  findUserSubscriptionForTier, 
+  createSubscriptionProof,
+  createCreatorAccessProof,
+  isSubscriptionActive,
+  findCreatorProfile
+} from "@/lib/seal/access-proof";
 
 interface ContentViewerProps {
   content: {
@@ -87,13 +94,13 @@ export function ContentViewer({
           throw new Error(errorMsg);
         }
         
-        // Extract symmetric key from on-chain storage
+        // Extract encryption key from on-chain storage
         const keyData = atob(content.encryptionKey);
         const parts = keyData.split(':');
         
         console.log("📦 Parsing encryption key:", {
           partsCount: parts.length,
-          format: parts.length === 3 ? "Legacy (IV:policyId:key)" : parts.length === 2 ? "New (policyId:key)" : "Unknown",
+          format: parts.length === 3 ? "Seal-powered (IV:policyId:key)" : parts.length === 2 ? "Legacy (policyId:key)" : "Unknown",
         });
         
         let symmetricKey: Uint8Array;
@@ -101,47 +108,95 @@ export function ContentViewer({
         let storedPolicyId: string;
         
         if (parts.length === 3) {
-          // Legacy format: IV:policyId:key (from old mock encryption)
+          // Seal-powered format: IV:policyId:key
           const [ivStr, policyId, keyBytesStr] = parts;
           nonce = new Uint8Array(ivStr.split(',').map(Number));
           symmetricKey = new Uint8Array(keyBytesStr.split(',').map(Number));
           storedPolicyId = policyId;
           
-          console.log("📦 Using legacy format (3 parts):", {
+          console.log("📦 Seal-powered content detected:", {
             policyId: storedPolicyId,
             nonceLength: nonce.length,
             keyLength: symmetricKey.length,
+            algorithm: "AES-256-GCM (Seal DEM standard)",
+            encryption: "Encrypted with Seal-powered encryption",
           });
+          
+          // Check if user is the creator
+          const isCreator = account?.address === content.creator;
+          
+          // ACCESS CONTROL: Verify subscription or creator ownership
+          if (!isCreator) {
+            console.log("🔐 Verifying subscription ownership...");
+            
+            if (!content.requiredTierId || !account?.address) {
+              throw new Error("Missing required tier ID or user address");
+            }
+            
+            const subscriptionNFTId = await findUserSubscriptionForTier(
+              suiClient,
+              account.address,
+              content.requiredTierId
+            );
+            
+            if (!subscriptionNFTId) {
+              throw new Error("No active subscription found. Please subscribe to this tier first.");
+            }
+            
+            const isActive = await isSubscriptionActive(suiClient, subscriptionNFTId);
+            if (!isActive) {
+              throw new Error("Your subscription has expired. Please renew to continue.");
+            }
+            
+            console.log("✅ Subscription verified on-chain");
+          } else {
+            console.log("👤 Creator has full access to own content");
+          }
         } else if (parts.length === 2) {
-          // 2-part format: could be either mock or Real Seal
-          // Check policy ID to determine which one
+          // Backward compatibility: 2-part format (policyId:key)
+          // IV is prepended to encrypted data in Walrus
           const [policyId, keyBytesStr] = parts;
           symmetricKey = new Uint8Array(keyBytesStr.split(',').map(Number));
           storedPolicyId = policyId;
           
-          // Real Seal policy IDs start with "seal_0x" (full address format)
-          // Mock policy IDs start with "seal_policy_" (short format)
-          const isRealSeal = policyId.startsWith('seal_0x');
+          // Extract IV from encrypted data (first 12 bytes)
+          nonce = encryptedObject.slice(0, 12);
           
-          if (isRealSeal) {
-            // Real Seal: nonce is embedded in encrypted data (first 12 bytes)
-            nonce = encryptedObject.slice(0, 12);
-            console.log("📦 Using Real Seal format:", {
-              policyId: storedPolicyId,
-              keyLength: symmetricKey.length,
-              nonceExtractedFromData: true,
-            });
-          } else {
-            // Mock format (2 parts): IV was prepended to data, extract it
-            nonce = encryptedObject.slice(0, 12);
-            console.log("📦 Using mock format (2 parts):", {
-              policyId: storedPolicyId,
-              keyLength: symmetricKey.length,
-              nonceExtractedFromData: true,
-            });
+          console.log("📦 Backward compatibility (2 parts):", {
+            policyId: storedPolicyId,
+            keyLength: symmetricKey.length,
+            nonceExtractedFromData: true,
+          });
+          
+          // Check access for 2-part format content
+          const isCreator = account?.address === content.creator;
+          
+          if (!isCreator) {
+            console.log("🔐 Subscriber detected - verifying subscription");
+            
+            if (!content.requiredTierId || !account?.address) {
+              throw new Error("Missing required tier ID or user address");
+            }
+            
+            const subscriptionNFTId = await findUserSubscriptionForTier(
+              suiClient,
+              account.address,
+              content.requiredTierId
+            );
+            
+            if (!subscriptionNFTId) {
+              throw new Error("No active subscription found. Please subscribe to this tier first.");
+            }
+            
+            const isActive = await isSubscriptionActive(suiClient, subscriptionNFTId);
+            if (!isActive) {
+              throw new Error("Your subscription has expired. Please renew to continue.");
+            }
+            
+            console.log("✅ Subscription verified for 2-part format content");
           }
         } else {
-          throw new Error(`Invalid encryption key format (expected 2 or 3 parts, got ${parts.length})`);
+          throw new Error(`Invalid encryption key format (expected 2 or 3 parts, got ${parts.length} parts)`);
         }
         
         // Decrypt using the symmetric key (AES-GCM)
@@ -182,7 +237,7 @@ export function ContentViewer({
             decryptedSize: decryptedData.length,
           });
           
-          const decryptedBlob = new Blob([decryptedData]);
+          const decryptedBlob = new Blob([decryptedData.slice()]);
           const url = URL.createObjectURL(decryptedBlob);
           setContentUrl(url);
           

@@ -88,7 +88,7 @@ Create a `.env.local` file in the `frontend` directory:
 NEXT_PUBLIC_SUI_NETWORK=testnet
 NEXT_PUBLIC_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
-NEXT_PUBLIC_PACKAGE_ID=0xcc0b3ce8945e7d149899b8d58e6c470bd80ed6909f32976f177270bc31b4af21
+NEXT_PUBLIC_PACKAGE_ID=0x9f3147b4c1775f39b2d63f0d1291ff352eadcd8a732570d67b5a919996af8c81
 ```
 
 ### Running Locally
@@ -147,9 +147,9 @@ This project fits into the following tracks:
 
 ### Testnet Deployment
 
-- **Package ID**: `0xcc0b3ce8945e7d149899b8d58e6c470bd80ed6909f32976f177270bc31b4af21`
+- **Package ID**: `0x9f3147b4c1775f39b2d63f0d1291ff352eadcd8a732570d67b5a919996af8c81`
 - **Network**: Sui Testnet
-- **Explorer**: [View on SuiScan](https://suiscan.xyz/testnet/object/0xcc0b3ce8945e7d149899b8d58e6c470bd80ed6909f32976f177270bc31b4af21)
+- **Explorer**: [View on SuiScan](https://suiscan.xyz/testnet/object/0x9f3147b4c1775f39b2d63f0d1291ff352eadcd8a732570d67b5a919996af8c81)
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment details.
 

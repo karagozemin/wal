@@ -27,8 +27,8 @@ const KEY_SERVER_CONFIGS = [
 ];
 
 const THRESHOLD = 1; // Need 1 out of 2 key servers (lower threshold for better performance)
-const ENCRYPTION_TIMEOUT = 300000; // 5 minutes for encryption (large files need time)
-const DECRYPTION_TIMEOUT = 120000; // 2 minutes for decryption
+const ENCRYPTION_TIMEOUT = 600000; // 10 minutes for encryption (large files need time)
+const DECRYPTION_TIMEOUT = 180000; // 3 minutes for decryption
 
 export interface RealSealEncryptionResult {
   encryptedObject: Uint8Array;
@@ -135,14 +135,16 @@ export class RealSealService {
    * Decrypt content using real Seal SDK
    * 
    * @param encryptedObject - Encrypted data from Seal
-   * @param txBytes - Transaction bytes that approve access
+   * @param policyId - The Seal policy ID (e.g., "seal_0x...")
+   * @param txBytes - Transaction bytes that prove subscription access
    * @param sessionKey - Optional session key for caching
    * @returns Decrypted plaintext
    */
   async decryptContent(
     encryptedObject: Uint8Array,
+    policyId: string,
     txBytes: Uint8Array,
-    sessionKey: any
+    sessionKey?: any
   ): Promise<Uint8Array> {
     if (!this.sealClient) {
       await this.initialize();
@@ -151,7 +153,9 @@ export class RealSealService {
     try {
       console.log('🔓 Decrypting with real Seal SDK...', {
         encryptedSize: encryptedObject.length,
+        policyId,
         hasTxBytes: !!txBytes,
+        txBytesLength: txBytes.length,
         hasSessionKey: !!sessionKey,
       });
 
@@ -163,13 +167,18 @@ export class RealSealService {
         checkLEEncoding: false,
       });
 
-      console.log('✅ Decryption successful', {
+      console.log('✅ Real Seal decryption successful!', {
         decryptedSize: decrypted.length,
       });
 
       return new Uint8Array(decrypted);
     } catch (error) {
       console.error('❌ Seal decryption failed:', error);
+      console.error('Error details:', {
+        name: (error as Error).name,
+        message: (error as Error).message,
+        policyId,
+      });
       throw error;
     }
   }
@@ -223,8 +232,13 @@ export class RealSealService {
 // Export singleton instance
 let realSealServiceInstance: RealSealService | null = null;
 
-export function getRealSealService(suiClient: SuiClient): RealSealService {
+export async function getRealSealService(suiClient?: SuiClient): Promise<RealSealService> {
   if (!realSealServiceInstance) {
+    // Import default suiClient if not provided
+    if (!suiClient) {
+      const { suiClient: defaultClient } = await import("@/lib/sui/client");
+      suiClient = defaultClient;
+    }
     realSealServiceInstance = new RealSealService(suiClient);
   }
   return realSealServiceInstance;

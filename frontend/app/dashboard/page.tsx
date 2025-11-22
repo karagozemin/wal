@@ -30,6 +30,7 @@ export default function Dashboard() {
     content_type: string;
     is_archived: boolean;
     encryption_key: string;
+    required_tier_id: string;
   }>>([]);
   
   // Form states
@@ -58,6 +59,7 @@ export default function Dashboard() {
     content_type: string;
     is_archived: boolean;
     encryption_key: string;
+    required_tier_id: string;
   }>>([]);
 
   // Auto-fetch creator profile on mount
@@ -147,6 +149,7 @@ export default function Dashboard() {
               content_type: fields.content_type || "media",
               is_archived: fields.is_archived || false,
               encryption_key: fields.encryption_key || "",
+              required_tier_id: fields.required_tier_id || "",
             };
           } catch (error) {
             console.error(`Error fetching content ${data.content_id}:`, error);
@@ -160,6 +163,7 @@ export default function Dashboard() {
               content_type: "media",
               is_archived: false,
               encryption_key: "",
+              required_tier_id: "",
             };
           }
         })
@@ -720,6 +724,7 @@ export default function Dashboard() {
                               contentType: content.content_type,
                               creator: account?.address || "",
                               encryptionKey: content.encryption_key,
+                              requiredTierId: content.required_tier_id,
                             }}
                             hasAccess={true}
                             compact={true}
@@ -813,6 +818,7 @@ export default function Dashboard() {
                                   contentType: content.content_type,
                                   creator: account?.address || "",
                                   encryptionKey: content.encryption_key,
+                                  requiredTierId: content.required_tier_id,
                                 }}
                                 hasAccess={true}
                                 compact={true}

@@ -55,6 +55,14 @@ module patreon::subscription {
         subscriber: address,
     }
 
+    /// Event when access proof is created (for Seal decryption)
+    public struct AccessProofCreated has copy, drop {
+        subscriber: address,
+        tier_id: ID,
+        content_id: ID,
+        timestamp: u64,
+    }
+
     /// Error codes
     const EInsufficientPayment: u64 = 0;
     const EMaxSubscribersReached: u64 = 1;
@@ -225,6 +233,56 @@ module patreon::subscription {
 
     public fun get_tier_creator(tier: &SubscriptionTier): address {
         tier.creator
+    }
+
+    /// Create access proof for Seal decryption (subscribers)
+    /// This function verifies subscription ownership and emits an event
+    /// The transaction bytes can be used as proof for Seal SDK
+    public entry fun create_access_proof(
+        subscription: &Subscription,
+        content_id: ID,
+        clock: &Clock,
+        ctx: &TxContext
+    ) {
+        let sender = tx_context::sender(ctx);
+        
+        // Verify the user owns this subscription
+        assert!(subscription.subscriber == sender, ENotSubscriber);
+        
+        // Verify subscription is still active
+        assert!(is_active(subscription, clock), ESubscriptionExpired);
+        
+        // Emit event for proof
+        event::emit(AccessProofCreated {
+            subscriber: sender,
+            tier_id: subscription.tier_id,
+            content_id,
+            timestamp: clock::timestamp_ms(clock),
+        });
+    }
+
+    /// Create access proof for creator (no subscription needed)
+    /// Creators can access their own content
+    public entry fun create_creator_access_proof(
+        profile: &patreon::creator_profile::CreatorProfile,
+        content_id: ID,
+        ctx: &TxContext
+    ) {
+        use patreon::creator_profile;
+        
+        let sender = tx_context::sender(ctx);
+        let profile_owner = creator_profile::get_owner(profile);
+        
+        // Verify the user is the profile owner
+        assert!(sender == profile_owner, ENotSubscriber);
+        
+        // Emit event for proof (using dummy tier_id for creator)
+        event::emit(AccessProofCreated {
+            subscriber: sender,
+            tier_id: object::id(profile), // Use profile ID as tier_id
+            content_id,
+            timestamp: 0, // No expiry for creators
+        });
     }
 }
 

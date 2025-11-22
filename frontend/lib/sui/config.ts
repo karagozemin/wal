@@ -13,6 +13,6 @@ const { networkConfig, useNetworkVariable, useNetworkVariables } =
 
 export { networkConfig, useNetworkVariable, useNetworkVariables };
 
-export const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID || "0xcc0b3ce8945e7d149899b8d58e6c470bd80ed6909f32976f177270bc31b4af21";
+export const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID || "0x9f3147b4c1775f39b2d63f0d1291ff352eadcd8a732570d67b5a919996af8c81";
 export const SUI_NETWORK = (process.env.NEXT_PUBLIC_SUI_NETWORK || "testnet") as "testnet" | "mainnet";
 
