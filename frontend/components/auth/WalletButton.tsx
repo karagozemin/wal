@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { ConnectButton, useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 import Link from "next/link";
 import { clearSessionCache } from "@/lib/seal/session-cache";
+import { clearAllContentCache } from "@/lib/cache/indexed-db-cache";
 
 export function WalletButton() {
   const account = useCurrentAccount();
@@ -87,6 +88,7 @@ export function WalletButton() {
             <button
               onClick={() => {
                 clearSessionCache(); // Clear Seal SessionKey cache
+                clearAllContentCache(); // Clear IndexedDB content cache
                 disconnect();
                 setIsOpen(false);
               }}

@@ -14,6 +14,7 @@ import {
   findCreatorProfile
 } from "@/lib/seal/access-proof";
 import { getOrCreateSessionKey } from "@/lib/seal/session-cache";
+import { getCachedContent, cacheDecryptedContent } from "@/lib/cache/indexed-db-cache";
 
 interface ContentViewerProps {
   content: {
@@ -66,7 +67,20 @@ export function ContentViewer({
     setError("");
 
     try {
-      // Download from Walrus
+      // Step 1: Check IndexedDB cache first (skip download & decrypt!)
+      if (!content.isPublic) {
+        const cachedBlob = await getCachedContent(content.id);
+        if (cachedBlob) {
+          console.log("♻️ Loading from IndexedDB cache (instant!)");
+          const url = URL.createObjectURL(cachedBlob);
+          setContentUrl(url);
+          setLoading(false);
+          return;
+        }
+        console.log("💾 Cache miss, will decrypt and cache...");
+      }
+      
+      // Step 2: Download from Walrus
       const blob = await walrusService.downloadFile(content.walrusBlobId);
       
       if (content.isPublic) {
@@ -226,7 +240,13 @@ export function ContentViewer({
               note: "GERÇEĞİ KULLANALIM BİSEY OLMAZ ✅",
             });
             
-            const decryptedBlob = new Blob([new Uint8Array(decryptedData)]);
+            const decryptedBlob = new Blob([new Uint8Array(decryptedData)], { type: content.contentType || 'application/octet-stream' });
+            
+            // Cache to IndexedDB for future loads (skip decrypt next time!)
+            await cacheDecryptedContent(content.id, decryptedBlob, content.requiredTierId).catch(err => {
+              console.warn("⚠️ Failed to cache content (non-fatal):", err);
+            });
+            
             const url = URL.createObjectURL(decryptedBlob);
             setContentUrl(url);
             setLoading(false);
@@ -375,7 +395,13 @@ export function ContentViewer({
             decryptedSize: decryptedData.length,
           });
           
-          const decryptedBlob = new Blob([decryptedData.slice()]);
+          const decryptedBlob = new Blob([decryptedData.slice()], { type: content.contentType || 'application/octet-stream' });
+          
+          // Cache to IndexedDB for future loads
+          await cacheDecryptedContent(content.id, decryptedBlob, content.requiredTierId).catch(err => {
+            console.warn("⚠️ Failed to cache content (non-fatal):", err);
+          });
+          
           const url = URL.createObjectURL(decryptedBlob);
           setContentUrl(url);
           

@@ -100,6 +100,43 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+---
+
+## 💾 **IndexedDB Content Cache**
+
+### **What is it?**
+To avoid re-decryption and re-signing on every page refresh, decrypted content is automatically cached in the browser's **IndexedDB** (local storage).
+
+### **Benefits:**
+- ⚡ **Instant Load**: Second time viewing content = 0.1 seconds (vs 5-8 seconds)
+- 🔑 **No Re-sign**: SessionKey is reused from localStorage
+- 🔓 **No Re-decrypt**: Decrypted content loaded from IndexedDB
+- 🌐 **No Blockchain Call**: Zero Seal SDK overhead after first load
+
+### **Cache Behavior:**
+- **Max Size**: 20MB per content (larger files are not cached)
+- **Duration**: 8 hours (automatically cleaned up)
+- **Storage**: Browser's IndexedDB (separate from localStorage)
+- **Security**: Cleared on logout, subscription cancel, or expiry
+
+### **How to Monitor:**
+Add the `<CacheStats />` component to any page to see cache statistics:
+
+```typescript
+import { CacheStats } from "@/components/cache/CacheStats";
+
+// In your page component:
+<CacheStats />
+```
+
+### **Cache Locations:**
+- `frontend/lib/cache/indexed-db-cache.ts` - Core implementation
+- `frontend/components/content/ContentViewer.tsx` - Integrated (read/write)
+- `frontend/components/auth/WalletButton.tsx` - Clear on logout
+- `frontend/components/cache/CacheStats.tsx` - Stats component (optional)
+
+---
+
 ## 📝 Usage Guide
 
 ### For Creators
