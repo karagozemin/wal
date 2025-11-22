@@ -107,7 +107,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 1. **Connect Wallet** - Click "Connect Wallet" in the header
 2. **Create Profile** - Go to Dashboard and create your creator profile
 3. **Set Up Tiers** - Create subscription tiers with custom pricing
-4. **Upload Content** - Upload encrypted content for your subscribers
+4. **Upload Content** - Upload encrypted content for your subscribers (max 5MB per file)
+   - Note: Encryption time depends on file size
 5. **Share Profile** - Share your profile link with fans
 
 ### For Fans
@@ -120,11 +121,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🔐 Security & Privacy
 
-- All non-public content is encrypted with Seal before upload
+- All non-public content is encrypted with **real Seal SDK** (Identity-Based Encryption)
+- Uses **threshold cryptography** (1-of-2 key servers) for decentralized key management
 - Encryption keys are managed on-chain via access policies
 - Subscription verification happens on-chain (trustless)
 - No centralized server can access encrypted content
 - Walrus ensures content is distributed and always available
+- **File size limit**: 5MB per upload (optimized for Seal encryption performance)
 
 ## 🎯 Hackathon Tracks
 

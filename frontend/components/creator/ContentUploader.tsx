@@ -30,7 +30,17 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      const maxSizeMB = 5;
+      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+      
+      if (selectedFile.size > maxSizeBytes) {
+        alert(`File size exceeds ${maxSizeMB}MB limit. Please choose a smaller file.`);
+        e.target.value = ''; // Reset file input
+        return;
+      }
+      
+      setFile(selectedFile);
     }
   };
 
@@ -55,7 +65,8 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
       let exportedKey: Uint8Array | null = null;
 
       if (!isPublic) {
-        setProgress("Encrypting with Seal SDK...");
+        const fileSizeMB = (fileData.length / (1024 * 1024)).toFixed(2);
+        setProgress(`Encrypting with Seal SDK... (${fileSizeMB}MB - may take a moment)`);
         
         try {
           // Use REAL Seal SDK for encryption
@@ -187,7 +198,9 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">File</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            File <span className="text-xs text-gray-500 font-normal">(Max 5MB)</span>
+          </label>
           <input
             type="file"
             onChange={handleFileChange}
@@ -199,6 +212,9 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
               Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </p>
           )}
+          <p className="text-xs text-gray-500 mt-1">
+            Note: Encryption time depends on file size. Larger files may take longer.
+          </p>
         </div>
 
         <div>
