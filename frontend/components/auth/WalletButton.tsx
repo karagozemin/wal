@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ConnectButton, useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 import Link from "next/link";
+import { clearSessionCache } from "@/lib/seal/session-cache";
 
 export function WalletButton() {
   const account = useCurrentAccount();
@@ -85,6 +86,7 @@ export function WalletButton() {
           <div className="border-t border-gray-100 py-2">
             <button
               onClick={() => {
+                clearSessionCache(); // Clear Seal SessionKey cache
                 disconnect();
                 setIsOpen(false);
               }}

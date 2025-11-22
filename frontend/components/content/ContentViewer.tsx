@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
 import { walrusService } from "@/lib/walrus/client";
 import { sealService } from "@/lib/seal/encryption";
 import { getRealSealService } from "@/lib/seal/real-seal";
@@ -13,6 +13,7 @@ import {
   isSubscriptionActive,
   findCreatorProfile
 } from "@/lib/seal/access-proof";
+import { getOrCreateSessionKey } from "@/lib/seal/session-cache";
 
 interface ContentViewerProps {
   content: {
@@ -45,6 +46,7 @@ export function ContentViewer({
   showLockedPreview = false 
 }: ContentViewerProps) {
   const account = useCurrentAccount();
+  const { mutateAsync: signPersonalMessage } = useSignPersonalMessage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [contentUrl, setContentUrl] = useState<string | null>(null);
@@ -94,15 +96,150 @@ export function ContentViewer({
           throw new Error(errorMsg);
         }
         
-        // Extract encryption key from on-chain storage
+        // Extract encryption metadata from on-chain storage
         const keyData = atob(content.encryptionKey);
-        const parts = keyData.split(':');
         
-        console.log("📦 Parsing encryption key:", {
-          partsCount: parts.length,
-          format: parts.length === 3 ? "Seal-powered (IV:policyId:key)" : parts.length === 2 ? "Legacy (policyId:key)" : "Unknown",
+        // Check if this is Real Seal format
+        // Format: "seal_<id>:key"
+        const isRealSealFormat = keyData.startsWith('seal_');
+        
+        console.log("📦 Parsing encryption metadata:", {
+          format: isRealSealFormat ? "Real Seal SDK (policy ID only)" : `Legacy (${keyData.split(':').length} parts)`,
+          preview: keyData.substring(0, 30),
         });
         
+        // ================================================================
+        // REAL SEAL SDK ENCRYPTED CONTENT
+        // ================================================================
+        if (isRealSealFormat) {
+          const parts = keyData.split(':');
+          
+          if (parts.length !== 2) {
+            throw new Error(`Invalid Real Seal format: expected 2 parts (seal_<id>:key), got ${parts.length}`);
+          }
+          
+          const [storedPolicyId, keyBytesStr] = parts;
+          const symmetricKey = new Uint8Array(keyBytesStr.split(',').map(Number));
+          const policyId = storedPolicyId.replace('seal_', ''); // Remove prefix
+          
+          console.log("🔐 REAL Seal SDK encrypted content detected:", {
+            policyId,
+            keySize: symmetricKey.length,
+            encryptedSize: encryptedObject.length,
+            contentId: content.id,
+            encryption: "100% Real @mysten/seal SDK",
+          });
+          
+          const isCreator = account?.address === content.creator;
+          
+          // ACCESS CONTROL
+          if (!isCreator) {
+            console.log("🔐 Verifying subscriber access...");
+            
+            if (!content.requiredTierId || !account?.address) {
+              throw new Error("Missing tier ID or user address");
+            }
+            
+            const subscriptionNFTId = await findUserSubscriptionForTier(
+              suiClient,
+              account.address,
+              content.requiredTierId
+            );
+            
+            if (!subscriptionNFTId) {
+              throw new Error("No active subscription. Please subscribe to this tier.");
+            }
+            
+            const isActive = await isSubscriptionActive(suiClient, subscriptionNFTId);
+            if (!isActive) {
+              throw new Error("Subscription expired. Please renew.");
+            }
+            
+            console.log("✅ Subscription verified on-chain");
+          } else {
+            console.log("👤 Creator has full access to own content");
+          }
+          
+          // DECRYPT with REAL Seal SDK decrypt() + seal_approve - %100 REAL!
+          console.log("🔓 Decrypting with REAL Seal SDK decrypt() + seal_approve...");
+          
+          try {
+            // Find subscription NFT for seal_approve
+            let subscriptionNFTId: string;
+            
+            if (!isCreator) {
+              // Subscriber: Find their active subscription NFT
+              if (!content.requiredTierId) {
+                throw new Error("Missing tier ID for subscription verification");
+              }
+              
+              const nftId = await findUserSubscriptionForTier(
+                suiClient,
+                account!.address,
+                content.requiredTierId
+              );
+              
+              if (!nftId) {
+                throw new Error("No active subscription found");
+              }
+              
+              subscriptionNFTId = nftId;
+              console.log("✅ Found subscription NFT:", subscriptionNFTId);
+            } else {
+              // Creator: Use their own content ID as proof
+              subscriptionNFTId = content.id;
+              console.log("👤 Creator viewing own content, using content ID:", subscriptionNFTId);
+            }
+            
+            // Initialize Seal SDK
+            const sealService = await getRealSealService(suiClient);
+            console.log("✅ Seal SDK initialized");
+            
+            // Get or create cached SessionKey (user signs ONCE, valid 28 min)
+            const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID || "";
+            const sessionKey = await getOrCreateSessionKey(
+              account!.address,
+              PACKAGE_ID,
+              suiClient,
+              signPersonalMessage!
+            );
+            
+            // Decrypt with REAL Seal SDK decrypt() + seal_approve
+            console.log("🔓 Calling Seal SDK decrypt() with seal_approve...");
+            
+            const decryptedData = await sealService.decryptContentWithSessionKey(
+              encryptedObject,
+              PACKAGE_ID,
+              policyId, // Use policyId as identity
+              sessionKey, // SessionKey for authorization
+              subscriptionNFTId, // Subscription NFT for seal_approve
+              suiClient
+            );
+            
+            console.log("✅ REAL Seal SDK decrypt() successful!", {
+              decryptedSize: decryptedData.length,
+              method: "100% Real @mysten/seal SDK decrypt() + seal_approve",
+              sealSDK: "Real Seal SDK - NOT MOCK!",
+              encryption: "IBE + BLS12-381 + AES-256-GCM",
+              sealApprove: "Using real seal_approve from smart contract ✅",
+              note: "GERÇEĞİ KULLANALIM BİSEY OLMAZ ✅",
+            });
+            
+            const decryptedBlob = new Blob([new Uint8Array(decryptedData)]);
+            const url = URL.createObjectURL(decryptedBlob);
+            setContentUrl(url);
+            setLoading(false);
+            return;
+          } catch (decryptError) {
+            console.error("❌ Real Seal decrypt() failed:", decryptError);
+            throw new Error(`Real Seal decrypt() failed: ${decryptError instanceof Error ? decryptError.message : 'Unknown error'}`);
+          }
+        }
+        
+        // ================================================================
+        // LEGACY FORMAT DECRYPTION (with symmetric key stored)
+        // ================================================================
+        const parts = keyData.split(':');
         let symmetricKey: Uint8Array;
         let nonce: Uint8Array;
         let storedPolicyId: string;

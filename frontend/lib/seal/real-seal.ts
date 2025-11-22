@@ -3,9 +3,10 @@
  * Using official @mysten/seal package
  */
 
-import { SealClient, DemType } from '@mysten/seal';
+import { SealClient, DemType, SessionKey } from '@mysten/seal';
 import type { SealClientOptions } from '@mysten/seal';
 import { SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
 
 // KemType enum (from Seal SDK)
 enum KemType {
@@ -132,43 +133,125 @@ export class RealSealService {
   }
 
   /**
-   * Decrypt content using real Seal SDK
+   * Create a SessionKey for Seal decryption
+   * User must sign a personal message to authorize key access
+   */
+  async createSessionKey(
+    suiClient: SuiClient,
+    address: string,
+    packageId: string,
+    signPersonalMessage: (args: { message: Uint8Array }) => Promise<{ signature: string }>
+  ): Promise<SessionKey> {
+    console.log('🔑 Creating Seal SessionKey...', {
+      address,
+      packageId,
+      ttlMin: 30,
+    });
+
+    // Create SessionKey with 30 min TTL (max allowed)
+    const sessionKey = await SessionKey.create({
+      address,
+      packageId,
+      ttlMin: 30,
+      suiClient,
+    });
+
+    // Get message to sign
+    const message = sessionKey.getPersonalMessage();
+    
+    console.log('🖊️  Requesting user signature for SessionKey...');
+    
+    // User signs the message
+    const { signature } = await signPersonalMessage({ message });
+    
+    // Complete SessionKey initialization
+    sessionKey.setPersonalMessageSignature(signature);
+    
+    console.log('✅ SessionKey created and authorized!');
+    
+    return sessionKey;
+  }
+
+  /**
+   * Decrypt content using real Seal SDK with SessionKey
+   * Uses seal_approve transaction for authorization
    * 
    * @param encryptedObject - Encrypted data from Seal
-   * @param policyId - The Seal policy ID (e.g., "seal_0x...")
-   * @param txBytes - Transaction bytes that prove subscription access
-   * @param sessionKey - Optional session key for caching
+   * @param packageId - Package ID
+   * @param identity - Identity string (tier ID / policy ID)
+   * @param sessionKey - SessionKey for decryption authorization
+   * @param subscriptionNFTId - Subscription NFT ID for seal_approve
+   * @param suiClient - SuiClient for building transactions
    * @returns Decrypted plaintext
    */
-  async decryptContent(
+  async decryptContentWithSessionKey(
     encryptedObject: Uint8Array,
-    policyId: string,
-    txBytes: Uint8Array,
-    sessionKey?: any
+    packageId: string,
+    identity: string,
+    sessionKey: SessionKey,
+    subscriptionNFTId: string,
+    suiClient: SuiClient
   ): Promise<Uint8Array> {
     if (!this.sealClient) {
       await this.initialize();
     }
 
     try {
-      console.log('🔓 Decrypting with real Seal SDK...', {
+      console.log('🔓 Decrypting with real Seal SDK + seal_approve...', {
         encryptedSize: encryptedObject.length,
-        policyId,
-        hasTxBytes: !!txBytes,
-        txBytesLength: txBytes.length,
-        hasSessionKey: !!sessionKey,
+        identity,
+        packageId,
+        subscriptionNFT: subscriptionNFTId,
       });
 
+      // Build transaction that calls seal_approve with CORRECT format
+      // First parameter MUST be vector<u8> (the policy/identity ID)
+      const tx = new Transaction();
+      
+      // Convert identity (tier ID / policy ID address string) to bytes
+      // Remove "0x" prefix and convert hex to bytes
+      const identityHex = identity.startsWith('0x') ? identity.slice(2) : identity;
+      const identityBytes = new Uint8Array(
+        identityHex.match(/.{1,2}/g)?.map((byte: string) => parseInt(byte, 16)) || []
+      );
+      
+      console.log('📝 Building seal_approve transaction...', {
+        identity,
+        identityBytes: identityBytes.length,
+        format: 'vector<u8> as per Seal SDK spec'
+      });
+      
+      tx.moveCall({
+        target: `${packageId}::subscription::seal_approve`,
+        arguments: [
+          tx.pure('vector<u8>', Array.from(identityBytes)),  // ✅ CORRECT: vector<u8>
+        ],
+      });
+
+      // Build transaction bytes (NOT executed, just for proof)
+      const txBytes = await tx.build({ 
+        client: suiClient,
+        onlyTransactionKind: true 
+      });
+
+      console.log('📝 Built seal_approve transaction', {
+        txBytesLength: txBytes.length,
+        function: 'seal_approve',
+      });
+
+      // Decrypt with Seal SDK
       const decrypted = await this.sealClient!.decrypt({
         data: encryptedObject,
         txBytes,
         sessionKey,
-        checkShareConsistency: true, // Verify all key servers agree
+        checkShareConsistency: true,
         checkLEEncoding: false,
       });
 
       console.log('✅ Real Seal decryption successful!', {
         decryptedSize: decrypted.length,
+        method: '100% Real Seal SDK decrypt() with seal_approve',
+        note: 'Using real seal_approve function from contract!',
       });
 
       return new Uint8Array(decrypted);
@@ -177,7 +260,6 @@ export class RealSealService {
       console.error('Error details:', {
         name: (error as Error).name,
         message: (error as Error).message,
-        policyId,
       });
       throw error;
     }
