@@ -91,10 +91,10 @@ export function WalletButton() {
               </>
             ) : (
               <>
-                <div className="text-xs text-gray-500 mb-1">Connected Wallet</div>
-                <div className="text-sm font-medium text-gray-900 truncate">
-                  {account.address}
-                </div>
+            <div className="text-xs text-gray-500 mb-1">Connected Wallet</div>
+            <div className="text-sm font-medium text-gray-900 truncate">
+              {account.address}
+            </div>
               </>
             )}
           </div>

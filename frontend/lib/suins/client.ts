@@ -33,18 +33,18 @@ export async function resolveNameToAddress(
   suiClient: SuiClient
 ): Promise<string | null> {
   try {
-    // Remove .sui if provided
-    const cleanName = name.endsWith('.sui') ? name.slice(0, -4) : name;
-    console.log(`🔍 Resolving SuiNS name: ${name} (clean: ${cleanName})`);
+    // Ensure name has .sui suffix (getNameRecord requires full name)
+    const fullName = name.endsWith('.sui') ? name : `${name}.sui`;
+    console.log(`🔍 Resolving SuiNS name: ${fullName}`);
     
     const client = getSuiNSClient(suiClient);
-    const result = await client.getNameRecord(cleanName);
+    const result = await client.getNameRecord(fullName);
     
     const address = result?.targetAddress || null;
     if (address) {
-      console.log(`✅ SuiNS: ${name} → ${address}`);
+      console.log(`✅ SuiNS: ${fullName} → ${address}`);
     } else {
-      console.log(`⚠️ SuiNS: ${name} resolved but no targetAddress found`);
+      console.log(`⚠️ SuiNS: ${fullName} resolved but no targetAddress found`);
     }
     return address;
   } catch (error) {

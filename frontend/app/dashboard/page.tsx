@@ -88,6 +88,11 @@ export default function Dashboard() {
       setUserSuiNS(suinsName);
       if (suinsName) {
         console.log('✅ User has SuiNS:', suinsName);
+        // Auto-fill handle from SuiNS (remove .sui suffix)
+        const handleFromSuins = suinsName.replace('.sui', '');
+        if (!handle || handle === '') {
+          setHandle(handleFromSuins);
+        }
       }
     } catch (error) {
       console.error('Error checking SuiNS:', error);
@@ -597,14 +602,27 @@ export default function Dashboard() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Handle *
+                      {userSuiNS && (
+                        <span className="ml-2 text-xs text-green-600 font-normal">
+                          (Auto-filled from SuiNS)
+                        </span>
+                      )}
                     </label>
                     <input
                       type="text"
                       value={handle}
                       onChange={(e) => setHandle(e.target.value)}
-                      className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                      placeholder="@yourname"
+                      disabled={!!userSuiNS}
+                      className={`w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none ${
+                        userSuiNS ? 'bg-gray-50 cursor-not-allowed opacity-75' : ''
+                      }`}
+                      placeholder={userSuiNS ? userSuiNS.replace('.sui', '') : "@yourname"}
                     />
+                    {userSuiNS && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Handle is automatically set from your SuiNS name. To use a different handle, disconnect your SuiNS name first.
+                      </p>
+                    )}
                   </div>
 
                   <div>

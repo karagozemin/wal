@@ -5,6 +5,7 @@ import Link from "next/link";
 import { WalletButton } from "@/components/auth/WalletButton";
 import { suiClient } from "@/lib/sui/client";
 import { PACKAGE_ID } from "@/lib/sui/config";
+import { resolveAddressToName } from "@/lib/suins/client";
 
 interface Creator {
   address: string;
@@ -12,6 +13,7 @@ interface Creator {
   bio: string;
   profileId: string;
   contentCount: number;
+  suinsName?: string | null; // SuiNS name if available
 }
 
 export default function Explore() {
@@ -54,16 +56,29 @@ export default function Explore() {
       });
 
       // Map profiles to creators
-      const creatorsList: Creator[] = profileEvents.data.map((event: any) => {
-        const data = event.parsedJson;
-        return {
-          address: data.owner,
-          handle: data.handle || data.owner.slice(0, 8),
-          bio: data.bio || "Creator on Web3 Patreon",
-          profileId: data.profile_id,
-          contentCount: contentCountMap[data.owner] || 0,
-        };
-      });
+      const creatorsList: Creator[] = await Promise.all(
+        profileEvents.data.map(async (event: any) => {
+          const data = event.parsedJson;
+          const address = data.owner;
+          
+          // Resolve SuiNS name for each creator
+          let suinsName: string | null = null;
+          try {
+            suinsName = await resolveAddressToName(address, suiClient);
+          } catch (error) {
+            console.log(`Could not resolve SuiNS for ${address.slice(0, 8)}...`);
+          }
+          
+          return {
+            address,
+            handle: data.handle || data.owner.slice(0, 8),
+            bio: data.bio || "Creator on Web3 Patreon",
+            profileId: data.profile_id,
+            contentCount: contentCountMap[address] || 0,
+            suinsName,
+          };
+        })
+      );
 
       setCreators(creatorsList);
       console.log("Fetched creators:", creatorsList);
@@ -158,10 +173,14 @@ export default function Explore() {
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
-              {filteredCreators.map((creator) => (
+              {filteredCreators.map((creator) => {
+                // Use SuiNS name in URL if available, otherwise use address
+                const creatorUrl = creator.suinsName || creator.address;
+                
+                return (
                 <Link
                   key={creator.address}
-                  href={`/creator/${creator.address}`}
+                  href={`/creator/${creatorUrl}`}
                   className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition"
                 >
                   <div className="flex items-start gap-4 mb-4">
@@ -178,19 +197,28 @@ export default function Explore() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4 text-sm text-gray-600">
+                    <div className="flex gap-4 text-sm text-gray-600">
                     <div>
                       <span className="font-semibold text-gray-900">
                         {creator.contentCount}
                       </span>{" "}
                       posts
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
-                      {creator.address.slice(0, 6)}...{creator.address.slice(-4)}
-                    </div>
+                    {creator.suinsName ? (
+                      <div className="text-xs text-blue-600 font-medium truncate flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {creator.suinsName}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-500 truncate">
+                        {creator.address.slice(0, 6)}...{creator.address.slice(-4)}
+                      </div>
+                    )}
                   </div>
                 </Link>
-              ))}
+              )})}
             </div>
           )}
 

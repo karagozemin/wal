@@ -78,7 +78,7 @@ export default function CreatorProfile({
 
   useEffect(() => {
     if (resolvedAddress) {
-      fetchCreatorData();
+    fetchCreatorData();
     }
   }, [resolvedAddress]);
 
@@ -335,10 +335,10 @@ export default function CreatorProfile({
                   </div>
 
                   {resolvedAddress && (
-                    <TipButton
+                  <TipButton
                       creatorAddress={resolvedAddress}
-                      profileId={profile.id}
-                    />
+                    profileId={profile.id}
+                  />
                   )}
                 </div>
               </div>
