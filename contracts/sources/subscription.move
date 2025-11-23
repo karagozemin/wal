@@ -339,5 +339,38 @@ module patreon::subscription {
             timestamp: 0,
         });
     }
+
+    /// Transfer subscription to another address (for marketplace)
+    /// Only the current subscriber can transfer
+    public entry fun transfer_subscription(
+        subscription: Subscription,
+        recipient: address,
+        ctx: &TxContext
+    ) {
+        let sender = tx_context::sender(ctx);
+        
+        // Verify sender is the current subscriber
+        assert!(sender == subscription.subscriber, ENotSubscriber);
+        
+        // Transfer to recipient
+        transfer::public_transfer(subscription, recipient);
+    }
+
+    /// Get subscription details (for marketplace display)
+    public fun get_subscription_creator(subscription: &Subscription): address {
+        subscription.creator
+    }
+
+    public fun get_subscription_tier(subscription: &Subscription): ID {
+        subscription.tier_id
+    }
+
+    public fun get_subscription_expires_at(subscription: &Subscription): u64 {
+        subscription.expires_at
+    }
+
+    public fun get_subscription_subscriber(subscription: &Subscription): address {
+        subscription.subscriber
+    }
 }
 

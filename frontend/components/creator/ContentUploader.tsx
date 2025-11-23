@@ -20,7 +20,9 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
   
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState("");
+  const [contentType, setContentType] = useState<'file' | 'text'>('file');
   const [file, setFile] = useState<File | null>(null);
+  const [textContent, setTextContent] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedTier, setSelectedTier] = useState("");
@@ -45,18 +47,43 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
   };
 
   const handleUpload = async () => {
-    if (!file || !account || !title) {
+    if (!account || !title) {
       alert("Please fill all required fields");
+      return;
+    }
+
+    if (contentType === 'file' && !file) {
+      alert("Please select a file");
+      return;
+    }
+
+    if (contentType === 'text' && !textContent.trim()) {
+      alert("Please enter text content");
       return;
     }
 
     setUploading(true);
     
     try {
-      // Step 1: Read file
-      setProgress("Reading file...");
-      const fileBuffer = await file.arrayBuffer();
-      const fileData = new Uint8Array(fileBuffer);
+      // Step 1: Prepare content data (file or text)
+      let contentData: Uint8Array;
+      let contentMimeType: string;
+
+      if (contentType === 'text') {
+        // Text post - convert to bytes
+        setProgress("Preparing text content...");
+        const encoder = new TextEncoder();
+        contentData = encoder.encode(textContent);
+        contentMimeType = 'text/plain';
+      } else {
+        // File upload
+        setProgress("Reading file...");
+        const fileBuffer = await file!.arrayBuffer();
+        contentData = new Uint8Array(fileBuffer);
+        contentMimeType = file!.type;
+      }
+
+      const fileData = contentData;
 
       // Step 2: Encrypt with Seal (if not public)
       let encryptedDataWithIV: Uint8Array = fileData;
@@ -113,7 +140,8 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
       // Step 3: Upload to Walrus
       setProgress("Uploading to Walrus...");
       const blob = new Blob([new Uint8Array(encryptedDataWithIV)]);
-      const uploadFile = new File([blob], file.name);
+      const fileName = contentType === 'text' ? `${title.slice(0, 20)}.txt` : file!.name;
+      const uploadFile = new File([blob], fileName);
       const { blobId } = await walrusService.uploadFile(uploadFile);
 
       // Step 5: Create on-chain record
@@ -158,7 +186,7 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
           tx.pure.bool(isPublic),
           tx.pure.bool(isPPV),
           tx.pure.u64(ppvPriceMist),
-          tx.pure.string(file.type.split("/")[0] || "file"),
+          tx.pure.string(contentType === 'text' ? 'text' : (contentMimeType.split("/")[0] || "file")),
           tx.pure.string(keyBase64), // Store encryption key on-chain
           tx.object(clockObjectId),
         ],
@@ -176,6 +204,7 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
             
             // Reset form
             setFile(null);
+            setTextContent("");
             setTitle("");
             setDescription("");
             setSelectedTier("");
@@ -202,25 +231,78 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Content</h2>
       
       <div className="space-y-4">
+        {/* Content Type Selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            File <span className="text-xs text-gray-500 font-normal">(Max 5MB)</span>
-          </label>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            accept="image/*,video/*,audio/*,.pdf"
-          />
-          {file && (
-            <p className="text-sm text-gray-600 mt-1">
-              Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-            </p>
-          )}
-          <p className="text-xs text-gray-500 mt-1">
-            Note: Encryption time depends on file size. Larger files may take longer.
-          </p>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setContentType('file')}
+              className={`px-4 py-2 rounded font-medium transition ${
+                contentType === 'file'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              📎 File Upload
+            </button>
+            <button
+              type="button"
+              onClick={() => setContentType('text')}
+              className={`px-4 py-2 rounded font-medium transition ${
+                contentType === 'text'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              📝 Text Post
+            </button>
+          </div>
         </div>
+
+        {/* File Input (conditional) */}
+        {contentType === 'file' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              File <span className="text-xs text-gray-500 font-normal">(Max 5MB)</span>
+            </label>
+            <input
+              type="file"
+              onChange={handleFileChange}
+              className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              accept="image/*,video/*,audio/*,.pdf"
+            />
+            {file && (
+              <p className="text-sm text-gray-600 mt-1">
+                Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Note: Encryption time depends on file size. Larger files may take longer.
+            </p>
+          </div>
+        )}
+
+        {/* Text Input (conditional) */}
+        {contentType === 'text' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Text Content * <span className="text-xs text-gray-500 font-normal">(Encrypted with Seal SDK)</span>
+            </label>
+            <textarea
+              value={textContent}
+              onChange={(e) => setTextContent(e.target.value)}
+              className="w-full border border-gray-300 rounded p-3 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono text-sm"
+              rows={12}
+              placeholder="Write your exclusive text content here...&#10;&#10;✨ This text will be encrypted with Seal SDK&#10;🔒 Only your subscribers can decrypt and read it&#10;📝 Supports plain text and markdown"
+            />
+            {textContent && (
+              <p className="text-sm text-gray-600 mt-1">
+                Length: {textContent.length} characters ({(new Blob([textContent]).size / 1024).toFixed(2)} KB)
+              </p>
+            )}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
@@ -319,10 +401,10 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
 
         <button
           onClick={handleUpload}
-          disabled={uploading || !file || !title}
+          disabled={uploading || (contentType === 'file' ? !file : !textContent.trim()) || !title}
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
         >
-          {uploading ? "Uploading..." : "Upload Content"}
+          {uploading ? "Uploading..." : contentType === 'text' ? "Publish Text Post" : "Upload Content"}
         </button>
       </div>
     </div>

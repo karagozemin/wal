@@ -47,6 +47,11 @@ export default function Dashboard() {
   const [editDescription, setEditDescription] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   
+  // Analytics states
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [totalSubscribers, setTotalSubscribers] = useState<number>(0);
+  
   // Archive/Unarchive states
   const [showArchived, setShowArchived] = useState(false);
   const [archivedContent, setArchivedContent] = useState<Array<{
@@ -98,6 +103,8 @@ export default function Dashboard() {
         await fetchTiers(profileIdFromEvent);
         // Fetch user's content
         await fetchMyContent();
+        // Fetch analytics
+        await fetchAnalytics(profileIdFromEvent);
       } else {
         console.log("No profile found for this wallet");
         setHasProfile(false);
@@ -258,6 +265,42 @@ export default function Dashboard() {
       alert(`Profile creation failed: ${error}`);
     } finally {
       setCreatingProfile(false);
+    }
+  };
+
+  const fetchAnalytics = async (profileIdToQuery: string) => {
+    if (!account?.address) return;
+    
+    try {
+      // 1. Fetch wallet balance (SUI coins)
+      const balance = await suiClient.getBalance({
+        owner: account.address,
+        coinType: '0x2::sui::SUI'
+      });
+      const balanceInSUI = parseInt(balance.totalBalance) / 1_000_000_000;
+      setWalletBalance(balanceInSUI);
+      
+      // 2. Fetch profile object for total_revenue and total_subscribers
+      const profileObj = await suiClient.getObject({
+        id: profileIdToQuery,
+        options: { showContent: true }
+      });
+      
+      if (profileObj.data?.content?.dataType === 'moveObject') {
+        const fields = profileObj.data.content.fields as any;
+        const revenueInMIST = parseInt(fields.total_revenue || '0');
+        const revenueInSUI = revenueInMIST / 1_000_000_000;
+        setTotalRevenue(revenueInSUI);
+        setTotalSubscribers(parseInt(fields.total_subscribers || '0'));
+        
+        console.log('📊 Analytics fetched:', {
+          walletBalance: balanceInSUI,
+          totalRevenue: revenueInSUI,
+          totalSubscribers: fields.total_subscribers
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
     }
   };
 
@@ -508,7 +551,15 @@ export default function Dashboard() {
                 <span className="text-gray-400">|</span>
                 <span className="text-gray-600">Creator Dashboard</span>
               </div>
-              <WalletButton />
+              <div className="flex items-center gap-4">
+                <Link href="/explore" className="text-gray-600 hover:text-gray-900 font-medium">
+                  Explore
+                </Link>
+                <Link href="/marketplace" className="text-gray-600 hover:text-gray-900 font-medium">
+                  Marketplace
+                </Link>
+                <WalletButton />
+              </div>
             </div>
           </div>
         </header>
@@ -559,18 +610,49 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-8">
               {/* Stats */}
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="text-sm text-gray-600 mb-1">Total Subscribers</div>
-                  <div className="text-3xl font-bold text-gray-900">0</div>
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm opacity-90">Wallet Balance</div>
+                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div className="text-3xl font-bold">{walletBalance.toFixed(2)} SUI</div>
+                  <div className="text-xs opacity-75 mt-1">Available to use</div>
                 </div>
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="text-sm text-gray-600 mb-1">Monthly Revenue</div>
-                  <div className="text-3xl font-bold text-gray-900">0 SUI</div>
+                
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm opacity-90">Total Revenue</div>
+                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="text-3xl font-bold">{totalRevenue.toFixed(2)} SUI</div>
+                  <div className="text-xs opacity-75 mt-1">All-time earnings</div>
                 </div>
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="text-sm text-gray-600 mb-1">Total Content</div>
-                  <div className="text-3xl font-bold text-gray-900">{myContent.length}</div>
+                
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm opacity-90">Subscribers</div>
+                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div className="text-3xl font-bold">{totalSubscribers}</div>
+                  <div className="text-xs opacity-75 mt-1">Active members</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm opacity-90">Total Content</div>
+                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <div className="text-3xl font-bold">{myContent.length}</div>
+                  <div className="text-xs opacity-75 mt-1">Published items</div>
                 </div>
               </div>
 

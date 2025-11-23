@@ -52,6 +52,7 @@ export function ContentViewer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [contentUrl, setContentUrl] = useState<string | null>(null);
+  const [decryptedText, setDecryptedText] = useState<string | null>(null);
   const [likes, setLikes] = useState(Math.floor(Math.random() * 100)); // Mock data
   const [comments, setComments] = useState(Math.floor(Math.random() * 20)); // Mock data
   const [isLiked, setIsLiked] = useState(false);
@@ -251,6 +252,14 @@ export function ContentViewer({
             
             const decryptedBlob = new Blob([new Uint8Array(decryptedData)], { type: content.contentType || 'application/octet-stream' });
             
+            // If text content, decode for display
+            if (content.contentType === 'text') {
+              const decoder = new TextDecoder();
+              const textContent = decoder.decode(new Uint8Array(decryptedData));
+              setDecryptedText(textContent);
+              console.log('📝 Text content decrypted:', { length: textContent.length });
+            }
+            
             // Fetch subscription expiry for cache sync (Real Seal path)
             let subscriptionExpiresAt: number | undefined;
             if (!isCreator && subscriptionNFTId) {
@@ -427,6 +436,14 @@ export function ContentViewer({
           });
           
           const decryptedBlob = new Blob([decryptedData.slice()], { type: content.contentType || 'application/octet-stream' });
+          
+          // If text content, decode for display
+          if (content.contentType === 'text') {
+            const decoder = new TextDecoder();
+            const textContent = decoder.decode(decryptedData.slice());
+            setDecryptedText(textContent);
+            console.log('📝 Text content decrypted (legacy):', { length: textContent.length });
+          }
           
           // Cache to IndexedDB for future loads
           // ✅ Cache expiry synced with subscription expiry (already fetched above)
@@ -679,6 +696,37 @@ export function ContentViewer({
                 className="w-full"
               />
             )}
+          </div>
+        )}
+        
+        {content.contentType === "text" && (
+          <div className={compact ? "p-4" : "p-8"}>
+            <div className="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+              <div className="prose prose-lg max-w-none">
+                <div className="whitespace-pre-wrap text-gray-800 font-serif leading-relaxed">
+                  {decryptedText || "Loading text..."}
+                </div>
+              </div>
+              {!compact && decryptedText && (
+                <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                  <p className="text-sm text-gray-500 mb-3">
+                    📝 {decryptedText.split(/\s+/).length} words · {decryptedText.length} characters
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(decryptedText);
+                      alert("Text copied to clipboard!");
+                    }}
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Text
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
         
