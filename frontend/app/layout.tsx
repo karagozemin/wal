@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Web3 Patreon - Decentralized Creator Platform",
-  description: "Support your favorite creators with Web3. Built on Sui with Walrus and Seal.",
+  title: "Walron 🦭 - Privacy-First Creator Platform",
+  description: "Decentralized creator monetization built on the Sui Stack. Encrypted content with Seal, distributed storage with Walrus.",
 };
 
 export default function RootLayout({

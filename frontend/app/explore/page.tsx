@@ -58,12 +58,12 @@ export default function Explore() {
       // Map profiles to creators
       const creatorsList: Creator[] = await Promise.all(
         profileEvents.data.map(async (event: any) => {
-          const data = event.parsedJson;
+        const data = event.parsedJson;
           const address = data.owner;
           const profileId = data.profile_id;
           
           // Fetch full profile object to get bio and images
-          let bio = "Creator on Web3 Patreon";
+          let bio = "Creator on Walron";
           let handle = data.handle || address.slice(0, 8);
           
           try {
@@ -96,7 +96,7 @@ export default function Explore() {
             profileId,
             contentCount: contentCountMap[address] || 0,
             suinsName,
-          };
+        };
         })
       );
 
@@ -120,8 +120,8 @@ export default function Explore() {
         <header className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                Web3 Patreon
+              <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
+                <span>🦭</span> Walron
               </Link>
               <div className="flex items-center gap-4">
                 <Link
@@ -182,7 +182,7 @@ export default function Explore() {
               <p className="text-gray-600 mb-6">
                 {searchQuery
                   ? "Try a different search term"
-                  : "Be the first creator on Web3 Patreon!"}
+                  : "Be the first creator on Walron!"}
               </p>
               <Link
                 href="/dashboard"
@@ -217,7 +217,7 @@ export default function Explore() {
                     </div>
                   </div>
 
-                    <div className="flex gap-4 text-sm text-gray-600">
+                  <div className="flex gap-4 text-sm text-gray-600">
                     <div>
                       <span className="font-semibold text-gray-900">
                         {creator.contentCount}
@@ -232,9 +232,9 @@ export default function Explore() {
                         {creator.suinsName}
                       </div>
                     ) : (
-                      <div className="text-xs text-gray-500 truncate">
-                        {creator.address.slice(0, 6)}...{creator.address.slice(-4)}
-                      </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {creator.address.slice(0, 6)}...{creator.address.slice(-4)}
+                    </div>
                     )}
                   </div>
                 </Link>

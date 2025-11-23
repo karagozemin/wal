@@ -10,9 +10,9 @@ export default function MarketplacePage() {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              Web3 Patreon
-            </Link>
+              <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
+              <span>🦭</span> Walron
+              </Link>
             <div className="flex items-center gap-4">
               <Link
                 href="/dashboard"
@@ -80,7 +80,7 @@ export default function MarketplacePage() {
                 View market prices and trending subscriptions
               </p>
             </div>
-          </div>
+        </div>
 
           {/* CTA */}
           <div className="space-x-4">

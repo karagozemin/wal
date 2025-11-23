@@ -805,8 +805,8 @@ export default function Dashboard() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <Link href="/" className="text-2xl font-bold text-blue-600">
-                  Web3 Patreon
+                <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
+                  <span>🦭</span> Walron
                 </Link>
                 <span className="text-gray-400">|</span>
                 <span className="text-gray-600">Creator Dashboard</span>
@@ -833,7 +833,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <Link href="/" className="text-2xl font-bold text-blue-600">
-                  Web3 Patreon
+                  <span>🦭</span> Walron
                 </Link>
                 <span className="text-gray-400">|</span>
                 <span className="text-gray-600">Creator Dashboard</span>

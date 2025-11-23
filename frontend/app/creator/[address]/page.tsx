@@ -153,7 +153,7 @@ export default function CreatorProfile({
         let profileImage = "";
         let bannerImage = "";
         let suinsName = "";
-        let bio = "Creator on Web3 Patreon";
+        let bio = "Creator on Walron";
         let handle = data.handle || data.owner.slice(0, 8);
 
         if (profileObj.data?.content?.dataType === "moveObject") {
@@ -161,7 +161,7 @@ export default function CreatorProfile({
           profileImage = fields.profile_image_blob_id || "";
           bannerImage = fields.banner_image_blob_id || "";
           suinsName = fields.suins_name || "";
-          bio = fields.bio || "Creator on Web3 Patreon";
+          bio = fields.bio || "Creator on Walron";
           handle = fields.handle || handle;
         }
 
@@ -329,8 +329,8 @@ export default function CreatorProfile({
         <header className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                Web3 Patreon
+              <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
+                <span>🦭</span> Walron
               </Link>
               <WalletButton />
             </div>
@@ -357,7 +357,7 @@ export default function CreatorProfile({
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
               <Link href="/" className="text-2xl font-bold text-blue-600">
-                Web3 Patreon
+                <span>🦭</span> Walron
               </Link>
               <WalletButton />
             </div>
@@ -373,7 +373,7 @@ export default function CreatorProfile({
             }}
           />
         ) : (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-48" />
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-48" />
         )}
 
         <div className="container mx-auto px-4">
@@ -390,8 +390,8 @@ export default function CreatorProfile({
                   />
                 ) : (
                   <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-4xl border-4 border-white shadow-lg">
-                    {profile.handle[0].toUpperCase()}
-                  </div>
+                  {profile.handle[0].toUpperCase()}
+                </div>
                 )}
                 
                 <div className="flex-grow">

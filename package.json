@@ -1,7 +1,7 @@
 {
-  "name": "web3-patreon",
+  "name": "walron",
   "version": "1.0.0",
-  "description": "Decentralized creator platform built on Sui Stack with Walrus and Seal",
+  "description": "Walron - Privacy-first creator platform built on Sui Stack (Walrus + Seal)",
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
@@ -12,14 +12,17 @@
     "contracts:deploy": "cd contracts && sui client publish --gas-budget 100000000"
   },
   "keywords": [
+    "walron",
     "sui",
     "walrus",
     "seal",
     "web3",
-    "patreon",
+    "creator-platform",
     "blockchain",
     "decentralized",
-    "creator-economy"
+    "creator-economy",
+    "encryption",
+    "privacy"
   ],
   "author": "",
   "license": "MIT",
