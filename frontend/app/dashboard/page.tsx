@@ -806,7 +806,12 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
-                  <span>🦭</span> Walron
+                  <img 
+                    src="/walron.JPG" 
+                    alt="Walron Logo" 
+                    className="w-8 h-8 object-contain"
+                  />
+                  Walron
                 </Link>
                 <span className="text-gray-400">|</span>
                 <span className="text-gray-600">Creator Dashboard</span>
@@ -868,9 +873,9 @@ export default function Dashboard() {
                       )}
                     </label>
                     <div className="relative">
-                      <input
-                        type="text"
-                        value={handle}
+                    <input
+                      type="text"
+                      value={handle}
                         onChange={(e) => {
                           const newHandle = e.target.value;
                           setHandle(newHandle);

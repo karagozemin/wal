@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Walron 🦭 - Privacy-First Creator Platform",
+  title: "Walron - Privacy-First Creator Platform",
   description: "Decentralized creator monetization built on the Sui Stack. Encrypted content with Seal, distributed storage with Walrus.",
+  icons: {
+    icon: '/walron.JPG',
+  },
 };
 
 export default function RootLayout({

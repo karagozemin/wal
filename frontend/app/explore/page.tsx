@@ -89,7 +89,7 @@ export default function Explore() {
             console.log(`Could not resolve SuiNS for ${address.slice(0, 8)}...`);
           }
           
-          return {
+        return {
             address,
             handle,
             bio,
@@ -121,7 +121,12 @@ export default function Explore() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
               <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600">
-                <span>🦭</span> Walron
+                <img 
+                  src="/walron.JPG" 
+                  alt="Walron Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+                Walron
               </Link>
               <div className="flex items-center gap-4">
                 <Link

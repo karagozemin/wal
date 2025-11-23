@@ -1,55 +1,120 @@
-# Walron 🦭
-
-> **Decentralized Creator Platform Built on the Sui Stack**
-> 
-> Built for the Walrus Haulout Hackathon 2024
+<div align="center">
+  <img src="frontend/public/walron.JPG" alt="Walron Logo" width="200"/>
+  
+  # Walron
+  
+  **Decentralized Creator Platform Built on the Sui Stack**
+  
+  Built for the Walrus Haulout Hackathon 2024
+</div>
 
 A privacy-first creator monetization platform leveraging Seal encryption and Walrus storage. Creators own their content, fans get verifiable access, and everything runs on-chain.
 
 ## 🌟 Overview
 
-**Walron** empowers creators to monetize their content directly on-chain without intermediaries. Fans get transparent, verifiable access to exclusive content, and creators maintain full ownership of their identity and content.
+Creators today face high platform fees, restrictive monetization models, and a lack of direct ownership over their audience relationships. Fans have little transparency into how their money supports creators, and valuable content remains locked within centralized systems.
+
+**Walron** is a decentralized Patreon built on the Sui Stack that empowers creators to own their identity, content, and monetization rules—while giving fans transparent, verifiable access to exclusive material.
+
+The platform enables:
+- **Direct creator–fan relationships** without intermediaries
+- **Programmable monetization models** adaptable to any content format
+- **Encrypted, verifiable content access** based on clear, onchain rules
+- **Privacy-first architecture** that protects both creator and fan data
+- **Global, censorship-resistant infrastructure** to ensure long-term access
 
 The name **Walron** combines **Walrus** (decentralized storage) + **Patreon** (creator platform), representing our mission to build the future of creator economy on the Sui Stack.
 
-## ✨ Key Features (All Fully Implemented & Working)
+## ✨ Deliverables (All Fully Implemented)
 
-### 🎨 Creator Features
-- **Creator Profiles**: Complete profile system with custom handles, bios, profile/banner images
-- **SuiNS Integration**: Human-readable `.sui` domains for creator profiles (e.g., `alice.sui`)
-- **Profile Editing**: Full profile management with image uploads via Walrus
-- **Analytics Dashboard**: Real-time stats (wallet balance, revenue, subscribers, content count)
-- **Unique Handles**: Each creator gets a unique username with real-time availability checking
+### 1️⃣ Creator Profiles
+✅ **Public-facing creator pages** with profile information, content previews, and subscription tiers
+- Complete profile system with custom handles, bios, profile/banner images
+- Real-time analytics dashboard (wallet balance, revenue, subscribers, content count)
+- Full profile editing with image uploads via Walrus
 
-### 🔐 Content & Security
-- **Seal Encryption**: Real @mysten/seal SDK with Identity-Based Encryption (IBE)
-- **Tier-Based Access**: Fine-grained access control based on subscription tiers
-- **Walrus Storage**: Decentralized, censorship-resistant content hosting
-- **IndexedDB Caching**: Smart client-side caching for instant content loads (0.1s vs 5-8s)
-- **Content Management**: Upload, archive, and organize encrypted content
+✅ **Portable identity** that persists beyond the platform
+- SuiNS integration: Human-readable `.sui` domains for creator profiles
+- On-chain identity that works across any compatible Sui app
+- Profile pages accessible via SuiNS name, handle, or wallet address
 
-### 💰 Monetization
-- **Subscription NFTs**: Tradeable, transferable membership tokens with `has key, store`
-- **Multiple Tiers**: Unlimited subscription tiers with custom pricing
-- **Direct Payments**: 100% of subscription fees go to creators (no intermediaries)
-- **Tipping System**: Instant SUI tips with optional messages
-- **Revenue Tracking**: Transparent on-chain revenue tracking
+### 2️⃣ Secure Content Hosting & Delivery
+✅ **Encrypted storage** of media, text posts, and downloadable files
+- Real @mysten/seal SDK with Identity-Based Encryption (IBE)
+- All content stored on Walrus (decentralized, censorship-resistant)
+- Profile images and banners also on Walrus
 
-### 🌐 Composability & Portability
-- **NFT Transferability**: Subscription NFTs can be sold, traded, or gifted
-- **Cross-Platform Compatible**: Access logic works with any platform supporting Sui standards
-- **On-Chain Verification**: All access checks happen on-chain (trustless)
-- **URL Routing**: Profile pages accessible via SuiNS name, handle, or wallet address
+✅ **Tier-based access controls**
+- Fine-grained access control per subscription tier
+- Each tier has unique encryption keys
+- On-chain verification before content decryption
+
+### 3️⃣ Authentication & Access Management
+✅ **Secure sign-in experience** for fans and creators
+- Wallet-based authentication (@mysten/dapp-kit)
+- SuiNS name display for verified identities
+- Seamless transaction signing
+
+✅ **Fine-grained access control** for different content tiers
+- Subscription NFTs prove membership on-chain
+- Access checks happen on-chain (trustless)
+- SessionKey authorization for decryption
+
+### 4️⃣ Monetization & Payments
+✅ **Monthly subscriptions**
+- Unlimited subscription tiers with custom pricing
+- Subscription NFTs (tradeable, transferable with `has key, store`)
+- Automatic revenue tracking on-chain
+
+✅ **Tipping**
+- Instant SUI tips with optional messages
+- Direct creator-to-fan payments
+
+✅ **Transparent, programmable revenue sharing**
+- 100% of fees go directly to creators (no intermediaries)
+- All transactions visible on-chain
+- No hidden fees
+
+### 5️⃣ Content Portability & Composability
+✅ **Creators and fans can take content and access rights across compatible platforms**
+- Subscription NFTs with `has key, store` (fully transferable)
+- Access logic works with any app that supports Sui standards
+- On-chain access policies readable by any platform
+
+✅ **Enables:**
+- **NFT marketplaces for premium content**: Subscription NFTs can be sold/transferred
+- **Token-gated platforms**: Use subscription tokens as access keys
+- **Cross-platform access**: Same subscription works anywhere
+- **Social integrations**: Verify subscription status for Discord/Telegram bots
 
 ## 🏗️ Architecture
 
-### Tech Stack
+### Technical Integration with the Sui Stack
 
-- **Blockchain**: Sui (Smart contracts in Move)
-- **Storage**: Walrus Protocol (Decentralized blob storage)
-- **Encryption**: Seal Protocol (Real @mysten/seal SDK with production key servers)
+**Sui** - Hosts all programmable logic
+- Smart contracts for subscriptions, payments, and access tiers (Move language)
+- Maintains transparent, auditable records of fan–creator interactions
+- Subscription NFTs with full transferability (`has key, store`)
+
+**Seal** - Encrypts all private creator content
+- Real @mysten/seal SDK with Identity-Based Encryption (IBE)
+- Enforces tiered and conditional access policies entirely onchain
+- Threshold cryptography (1-of-2 key servers) for decentralized key management
+
+**Walrus** - Stores all large media files and archives
+- Decentralized, verifiable storage for all content
+- Profile images, banners, and content blobs
+- Works with Seal to ensure only authorized fans can decrypt and view content
+
+**SuiNS** - Provides human-readable creator handles
+- Portable identity (e.g., `creatorname.sui`)
+- Automatic detection and display of `.sui` names
+- Profile URLs work with SuiNS, handle, or address
+
+**Additional Tech:**
 - **Frontend**: Next.js 14 + TypeScript + Tailwind CSS
-- **Wallet**: @mysten/dapp-kit
+- **Wallet**: @mysten/dapp-kit for seamless authentication
+- **Caching**: IndexedDB for performance optimization
 
 ### Smart Contracts
 
@@ -188,13 +253,29 @@ import { CacheStats } from "@/components/cache/CacheStats";
 
 ## 🔐 Security & Privacy
 
-- All non-public content is encrypted with **real Seal SDK** (Identity-Based Encryption)
-- Uses **threshold cryptography** (1-of-2 key servers) for decentralized key management
+### Encryption
+- All non-public content is encrypted with **real @mysten/seal SDK** (Identity-Based Encryption)
+- **IBE Scheme**: BonehFranklinBLS12381DemCCA (BLS12-381 curve)
+- **Symmetric Encryption**: AES-256-GCM for content encryption
+- **Threshold Cryptography**: 1-of-2 key servers for decentralized key management
+- **SessionKey Authorization**: `seal_approve` transactions required for decryption
+
+### Access Control
 - Encryption keys are managed on-chain via access policies
-- Subscription verification happens on-chain (trustless)
-- No centralized server can access encrypted content
-- Walrus ensures content is distributed and always available
+- Subscription verification happens on-chain (trustless, no server needed)
+- Tier-based access: Each subscription tier has unique encryption keys
+- On-chain proof required before decryption can occur
+
+### Data Protection
+- No centralized server can access encrypted content (only encrypted blobs stored)
+- Walrus ensures content is distributed and always available (censorship-resistant)
+- Profile images and content stored on Walrus (not centralized servers)
+- IndexedDB cache cleared on logout/subscription expiry (privacy-first)
+
+### Performance
 - **File size limit**: 5MB per upload (optimized for Seal encryption performance)
+- **Encryption timeout**: 10 minutes (for large files)
+- **Decryption timeout**: 3 minutes (with caching, usually <1s)
 
 ## 🎯 Hackathon Track: Data Security & Privacy
 
@@ -204,38 +285,45 @@ Creators need to monetize exclusive content, but centralized platforms:
 - Control creator-fan relationships  
 - Take 5-30% fees
 - Can censor or ban creators
+- Store user data on centralized servers
 
 ### Walron's Solution: Privacy-First Architecture
-Built entirely on the Sui Stack:
+Built entirely on the Sui Stack with **real production implementations**:
 
-**🔐 Seal Encryption**
-- Real IBE (Identity-Based Encryption) with @mysten/seal SDK
-- Tier-based access policies
-- Threshold cryptography (1-of-2 key servers)
-- Only verified subscribers can decrypt
+**🔐 Seal Encryption (Real @mysten/seal SDK)**
+- **Identity-Based Encryption (IBE)**: BonehFranklinBLS12381DemCCA + AES-256-GCM
+- **Tier-based access policies**: Each subscription tier gets unique encryption keys
+- **Threshold cryptography**: 1-of-2 key servers for decentralized key management
+- **SessionKey authorization**: `seal_approve` transactions for secure decryption
+- **Production key servers**: Using verified, fast key servers on testnet
+- **Only verified subscribers can decrypt**: On-chain proof required before decryption
 
-**🌐 Walrus Storage**
-- Decentralized blob storage
-- Censorship-resistant
-- Verifiable content integrity
-- No single point of failure
+**🌐 Walrus Storage (Decentralized Blob Storage)**
+- **Censorship-resistant**: Content distributed across multiple nodes
+- **Verifiable content integrity**: Blob IDs stored on-chain for verification
+- **No single point of failure**: Decentralized architecture
+- **Profile images & content**: Both stored on Walrus for true decentralization
 
-**⛓️ On-Chain Verification**
-- Subscription NFTs prove membership
-- Access checks happen on-chain (trustless)
-- Zero-knowledge-like: no content exposed
-- Transparent, auditable policies
+**⛓️ On-Chain Verification (Trustless Access Control)**
+- **Subscription NFTs**: Prove membership on-chain (`has key, store`)
+- **Access checks happen on-chain**: No server-side verification needed
+- **Zero-knowledge-like**: Content never exposed, only access rights verified
+- **Transparent, auditable policies**: All access logic visible on blockchain
+- **SuiNS integration**: Human-readable identity verification
 
 **🎯 Result**
-Creators fully control their content and revenue, fans get verifiable access, and privacy is guaranteed by cryptography—not trust in a platform.
+Creators fully control their content and revenue, fans get verifiable access, and privacy is guaranteed by **cryptography**—not trust in a platform. This is the first fully working decentralized Patreon with end-to-end encryption.
 
 ## 📊 Deployment
 
 ### Testnet Deployment
 
-- **Package ID**: `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35`
+- **Package ID**: Set via `NEXT_PUBLIC_PACKAGE_ID` environment variable
 - **Network**: Sui Testnet
-- **Explorer**: [View on SuiScan](https://suiscan.xyz/testnet/object/0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35)
+- **Default Package ID** (fallback): `0xdbd66ba1348f60cdac421c2da4a09d2f56a48fa64963307b3842896258723e35`
+- **Explorer**: [View on SuiScan](https://suiscan.xyz/testnet/) (use your deployed package ID)
+
+> **Note**: Update `NEXT_PUBLIC_PACKAGE_ID` in `.env.local` with your deployed package ID after publishing contracts.
 
 
 ## 🎥 Demo
@@ -253,37 +341,48 @@ Creators fully control their content and revenue, fans get verifiable access, an
 
 ## 🔮 Future Enhancements
 
-- **zkLogin/Passkeys**: Passwordless authentication for better UX
+### Planned for V2
+- **zkLogin/Passkeys**: Passwordless, privacy-preserving authentication (Sui Stack feature)
 - **Direct Messaging**: Encrypted creator-fan communication
 - **Content Bundles**: Package multiple content pieces together
+- **Comments & Community**: Fan engagement with creator posts
 - **Auto-Renewal**: Automatic subscription renewals
 - **Multi-Tier Access**: Subscribe to multiple tiers simultaneously
 - **NFT Gating**: Use existing NFTs as access keys
-- **Comments System**: Fan engagement with creator posts
 - **Advanced Analytics**: Detailed revenue breakdowns and growth charts
+- **Livestream Support**: Real-time encrypted streaming with Walrus
 
-## 🏆 What Makes This Special
+## 🏆 Why Walron Stands Out
 
-### Technical Excellence ⚡
-- **Complete Sui Stack Integration**: Sui blockchain + Walrus storage + Seal encryption + SuiNS
+### ✅ Complete RFP Implementation
+This project delivers on **all core requirements** of the Web3 Patreon RFP:
+- ✅ Direct creator–fan relationships without intermediaries
+- ✅ Programmable monetization models (subscriptions + tipping)
+- ✅ Encrypted, verifiable content access with onchain rules
+- ✅ Privacy-first architecture (Seal IBE + Walrus storage)
+- ✅ Global, censorship-resistant infrastructure (Walrus)
+- ✅ All major deliverables implemented and working
+
+### 🔐 Track Excellence: Data Security & Privacy
+Perfect fit for the **Data Security & Privacy** track:
 - **Real Seal SDK**: Production-ready IBE encryption (not mock implementation)
-- **Gas-Efficient Contracts**: Optimized Move code with proper error handling
-- **Smart Caching**: IndexedDB integration for instant content loads
-- **Composable NFTs**: Subscription tokens with `has key, store` for full transferability
+- **Threshold Cryptography**: Decentralized key management (1-of-2 servers)
+- **On-Chain Access Control**: Trustless verification via Subscription NFTs
+- **Walrus Integration**: Verifiable, censorship-resistant storage
+- **Zero Server Trust**: Content encrypted before upload, only subscribers decrypt
 
-### Innovation 🚀
-- **First Decentralized Patreon**: Complete working implementation with encrypted content
-- **Subscription NFT Marketplace**: Tradeable memberships create secondary markets
+### 🚀 Technical Innovation
+- **Complete Sui Stack Integration**: Sui + Walrus + Seal + SuiNS working together
+- **Subscription NFT Composability**: `has key, store` enables secondary markets
 - **Identity-Based Encryption**: Fine-grained tier access without complex key management
-- **True Content Ownership**: Creators control everything on-chain
-- **SuiNS URLs**: Human-readable profile links (`alice.sui` instead of `0x123...`)
+- **Smart Caching**: IndexedDB reduces decryption overhead by 99% (5-8s → 0.1s)
+- **Portable Identity**: SuiNS + unique handles + on-chain profiles
 
-### User Experience 🎨
+### 🎨 User Experience
 - **Familiar Interface**: Patreon-like UX for easy onboarding
-- **Real-Time Validation**: Handle availability checking, transaction confirmations
-- **Instant Content Access**: 0.1s load times after first decrypt (via caching)
-- **Profile Customization**: Full profile editing with image uploads
-- **Analytics Dashboard**: Live stats for creators
+- **Real-Time Features**: Handle validation, transaction confirmations, live analytics
+- **Profile Customization**: Full editing with Walrus-hosted images
+- **Instant Content Access**: Sub-second loads after first decrypt
 
 ## 📄 License
 

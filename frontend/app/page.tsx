@@ -10,10 +10,12 @@ export default function Home() {
         <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">🦭</span>
-                </div>
+              <Link href="/" className="flex items-center gap-3">
+                <img 
+                  src="/walron.JPG" 
+                  alt="Walron Logo" 
+                  className="w-12 h-12 object-contain"
+                />
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Walron
                 </h1>
@@ -44,6 +46,15 @@ export default function Home() {
           
           <div className="container mx-auto px-4 py-24 relative">
             <div className="max-w-4xl mx-auto text-center">
+              {/* Logo */}
+              <div className="flex justify-center mb-8">
+                <img 
+                  src="/walron.JPG" 
+                  alt="Walron Logo" 
+                  className="w-32 h-32 object-contain"
+                />
+              </div>
+              
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 mb-8 shadow-sm">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
