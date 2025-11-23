@@ -75,7 +75,7 @@ export function SubscriptionCard({ tier, profileId, isSubscribed }: Subscription
               
               console.log("✅ Reloading page to show new subscription...");
               alert("Successfully subscribed! Content will unlock now.");
-              window.location.reload();
+            window.location.reload();
             } catch (waitError) {
               console.error("❌ Error waiting for transaction:", waitError);
               alert("Subscribed, but please refresh manually to see changes.");

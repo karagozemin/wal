@@ -13,6 +13,7 @@ module patreon::creator_profile {
         bio: String,
         profile_image_blob_id: String,
         banner_image_blob_id: String,
+        suins_name: String, // SuiNS domain (e.g., "alice.sui") - empty string if none
         created_at: u64,
         total_subscribers: u64,
         total_revenue: u64,
@@ -43,6 +44,7 @@ module patreon::creator_profile {
         bio: String,
         profile_image_blob_id: String,
         banner_image_blob_id: String,
+        suins_name: String, // Optional: pass empty string "" if no SuiNS
         ctx: &mut TxContext
     ) {
         let sender = tx_context::sender(ctx);
@@ -54,6 +56,7 @@ module patreon::creator_profile {
             bio,
             profile_image_blob_id,
             banner_image_blob_id,
+            suins_name,
             created_at: tx_context::epoch(ctx),
             total_subscribers: 0,
             total_revenue: 0,
@@ -83,11 +86,13 @@ module patreon::creator_profile {
         bio: String,
         profile_image_blob_id: String,
         banner_image_blob_id: String,
+        suins_name: String, // Optional: pass empty string "" if no SuiNS
         ctx: &TxContext
     ) {
         profile.bio = bio;
         profile.profile_image_blob_id = profile_image_blob_id;
         profile.banner_image_blob_id = banner_image_blob_id;
+        profile.suins_name = suins_name;
 
         event::emit(ProfileUpdated {
             profile_id: object::id(profile),
@@ -130,6 +135,11 @@ module patreon::creator_profile {
     /// Get total revenue
     public fun get_total_revenue(profile: &CreatorProfile): u64 {
         profile.total_revenue
+    }
+
+    /// Get SuiNS name
+    public fun get_suins_name(profile: &CreatorProfile): String {
+        profile.suins_name
     }
 }
 

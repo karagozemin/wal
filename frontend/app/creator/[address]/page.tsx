@@ -9,6 +9,7 @@ import { useCurrentAccount } from "@mysten/dapp-kit";
 import Link from "next/link";
 import { suiClient } from "@/lib/sui/client";
 import { PACKAGE_ID } from "@/lib/sui/config";
+import { resolveNameToAddress, isSuiNSName } from "@/lib/suins/client";
 
 interface CreatorProfile {
   id: string;
@@ -44,17 +45,42 @@ export default function CreatorProfile({
 }: {
   params: Promise<{ address: string }>;
 }) {
-  const { address } = use(params);
+  const { address: addressOrSuiNS } = use(params);
   const currentAccount = useCurrentAccount();
   const [loading, setLoading] = useState(true);
+  const [resolvedAddress, setResolvedAddress] = useState<string | null>(null);
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [content, setContent] = useState<Content[]>([]);
   const [userSubscribedTiers, setUserSubscribedTiers] = useState<Set<string>>(new Set());
 
+  // Resolve SuiNS name to address if needed
   useEffect(() => {
-    fetchCreatorData();
-  }, [address]);
+    const resolveAddress = async () => {
+      if (isSuiNSName(addressOrSuiNS)) {
+        console.log('🔍 Resolving SuiNS name:', addressOrSuiNS);
+        const addr = await resolveNameToAddress(addressOrSuiNS, suiClient);
+        if (addr) {
+          console.log('✅ SuiNS resolved to:', addr);
+          setResolvedAddress(addr);
+        } else {
+          console.log('❌ SuiNS name not found');
+          setResolvedAddress(null);
+        }
+      } else {
+        // Already an address
+        setResolvedAddress(addressOrSuiNS);
+      }
+    };
+    
+    resolveAddress();
+  }, [addressOrSuiNS]);
+
+  useEffect(() => {
+    if (resolvedAddress) {
+      fetchCreatorData();
+    }
+  }, [resolvedAddress]);
 
   useEffect(() => {
     if (currentAccount?.address) {
@@ -63,6 +89,8 @@ export default function CreatorProfile({
   }, [currentAccount?.address, tiers]);
 
   const fetchCreatorData = async () => {
+    if (!resolvedAddress) return;
+    
     setLoading(true);
     try {
       // Fetch profile
@@ -74,7 +102,7 @@ export default function CreatorProfile({
       });
 
       const creatorProfile = profileEvents.data.find(
-        (event: any) => event.parsedJson?.owner === address
+        (event: any) => event.parsedJson?.owner === resolvedAddress
       );
 
       if (creatorProfile) {
@@ -98,7 +126,7 @@ export default function CreatorProfile({
       // Remove duplicates by tier_id
       const uniqueTiers = new Map();
       tierEvents.data
-        .filter((event: any) => event.parsedJson?.creator === address)
+        .filter((event: any) => event.parsedJson?.creator === resolvedAddress)
         .forEach((event: any) => {
           const data = event.parsedJson;
           if (!uniqueTiers.has(data.tier_id)) {
@@ -124,7 +152,7 @@ export default function CreatorProfile({
       });
 
       const creatorContentEvents = contentEvents.data.filter(
-        (event: any) => event.parsedJson?.creator === address
+        (event: any) => event.parsedJson?.creator === resolvedAddress
       );
 
       // Fetch full content objects to get walrus_blob_id
@@ -149,7 +177,7 @@ export default function CreatorProfile({
               title: data.title || fields.title || "Untitled",
               isPublic: data.is_public,
               contentType: fields.content_type || "media",
-              creator: address,
+              creator: resolvedAddress,
               walrusBlobId: fields.walrus_blob_id || "",
               encryptionKey: fields.encryption_key || "",
               sealPolicyId: fields.seal_policy_id || "",
@@ -306,10 +334,12 @@ export default function CreatorProfile({
                     </div>
                   </div>
 
-                  <TipButton
-                    creatorAddress={address}
-                    profileId={profile.id}
-                  />
+                  {resolvedAddress && (
+                    <TipButton
+                      creatorAddress={resolvedAddress}
+                      profileId={profile.id}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -343,7 +373,7 @@ export default function CreatorProfile({
               <div className="space-y-6">
                 {content.map((item) => {
                   // Determine if user has access to this content
-                  const isCreator = currentAccount?.address === address;
+                  const isCreator = currentAccount?.address === resolvedAddress;
                   
                   // Check if user has subscribed to the required tier for this content
                   const hasRequiredTier = item.requiredTierId 

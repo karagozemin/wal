@@ -328,21 +328,21 @@ export function ContentUploader({ profileId, tiers }: ContentUploaderProps) {
         </div>
 
         {!isPublic && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Required Tier</label>
-            <select
-              value={selectedTier}
-              onChange={(e) => setSelectedTier(e.target.value)}
-              className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-            >
-              <option value="">Select tier</option>
-              {tiers.map((tier) => (
-                <option key={tier.id} value={tier.id}>
-                  {tier.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Required Tier</label>
+                <select
+                  value={selectedTier}
+                  onChange={(e) => setSelectedTier(e.target.value)}
+                  className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                >
+                  <option value="">Select tier</option>
+                  {tiers.map((tier) => (
+                    <option key={tier.id} value={tier.id}>
+                      {tier.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
         )}
 
         {uploading && (

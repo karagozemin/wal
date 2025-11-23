@@ -5,12 +5,34 @@ import { ConnectButton, useCurrentAccount, useDisconnectWallet } from "@mysten/d
 import Link from "next/link";
 import { clearSessionCache } from "@/lib/seal/session-cache";
 import { clearAllContentCache } from "@/lib/cache/indexed-db-cache";
+import { getUserSuiNS, formatDisplayName } from "@/lib/suins/client";
+import { suiClient } from "@/lib/sui/client";
 
 export function WalletButton() {
   const account = useCurrentAccount();
   const { mutate: disconnect } = useDisconnectWallet();
   const [isOpen, setIsOpen] = useState(false);
+  const [suinsName, setSuinsName] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch SuiNS name when account changes
+  useEffect(() => {
+    let cancelled = false;
+    
+    if (account?.address) {
+      getUserSuiNS(account.address, suiClient).then((name) => {
+        if (!cancelled) {
+          setSuinsName(name);
+        }
+      });
+    } else if (!cancelled) {
+      setSuinsName(null);
+    }
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [account?.address]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,10 +57,10 @@ export function WalletButton() {
         className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 hover:border-gray-400 transition"
       >
         <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-          {account.address.slice(2, 4).toUpperCase()}
+          {suinsName ? suinsName[0].toUpperCase() : account.address.slice(2, 4).toUpperCase()}
         </div>
         <span className="text-sm font-medium text-gray-700">
-          {account.address.slice(0, 6)}...{account.address.slice(-4)}
+          {formatDisplayName(account.address, suinsName)}
         </span>
         <svg
           className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -53,10 +75,28 @@ export function WalletButton() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           <div className="p-3 border-b border-gray-100">
-            <div className="text-xs text-gray-500 mb-1">Connected Wallet</div>
-            <div className="text-sm font-medium text-gray-900 truncate">
-              {account.address}
-            </div>
+            {suinsName ? (
+              <>
+                <div className="text-xs text-gray-500 mb-1">SuiNS Name</div>
+                <div className="text-sm font-bold text-blue-600 mb-2 flex items-center gap-1">
+                  {suinsName}
+                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="text-xs text-gray-500 mb-1">Wallet Address</div>
+                <div className="text-xs font-mono text-gray-600 truncate">
+                  {account.address}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-xs text-gray-500 mb-1">Connected Wallet</div>
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {account.address}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="py-2">

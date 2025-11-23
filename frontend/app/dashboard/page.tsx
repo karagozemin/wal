@@ -8,6 +8,7 @@ import { ContentUploader } from "@/components/creator/ContentUploader";
 import { ContentViewer } from "@/components/content/ContentViewer";
 import { PACKAGE_ID } from "@/lib/sui/config";
 import { suiClient } from "@/lib/sui/client";
+import { getUserSuiNS } from "@/lib/suins/client";
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -36,6 +37,8 @@ export default function Dashboard() {
   // Form states
   const [handle, setHandle] = useState("");
   const [bio, setBio] = useState("");
+  const [userSuiNS, setUserSuiNS] = useState<string | null>(null);
+  const [checkingSuiNS, setCheckingSuiNS] = useState(false);
   const [tierName, setTierName] = useState("");
   const [tierDescription, setTierDescription] = useState("");
   const [tierPrice, setTierPrice] = useState("");
@@ -71,8 +74,27 @@ export default function Dashboard() {
   useEffect(() => {
     if (account?.address) {
       fetchCreatorProfile();
+      checkUserSuiNS();
     }
   }, [account?.address]);
+
+  // Check if user has a SuiNS name
+  const checkUserSuiNS = async () => {
+    if (!account?.address) return;
+    
+    setCheckingSuiNS(true);
+    try {
+      const suinsName = await getUserSuiNS(account.address, suiClient);
+      setUserSuiNS(suinsName);
+      if (suinsName) {
+        console.log('✅ User has SuiNS:', suinsName);
+      }
+    } catch (error) {
+      console.error('Error checking SuiNS:', error);
+    } finally {
+      setCheckingSuiNS(false);
+    }
+  };
 
   const fetchCreatorProfile = async () => {
     if (!account?.address) return;
@@ -235,6 +257,7 @@ export default function Dashboard() {
           tx.pure.string(bio),
           tx.pure.string("default_profile_image"),
           tx.pure.string("default_banner_image"),
+          tx.pure.string(userSuiNS || ""), // SuiNS name or empty string
         ],
       });
 
@@ -596,6 +619,46 @@ export default function Dashboard() {
                       placeholder="Tell your fans about yourself..."
                     />
                   </div>
+
+                  {/* SuiNS Display */}
+                  {checkingSuiNS ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-blue-700">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                        <span className="text-sm">Checking for SuiNS name...</span>
+                      </div>
+                    </div>
+                  ) : userSuiNS ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm font-semibold text-green-800">SuiNS Name Detected!</span>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        Your profile will be accessible via: <span className="font-mono font-bold">{userSuiNS}</span>
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        This will be saved to your creator profile automatically.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-700">No SuiNS Name</span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        You can register a .sui name at{' '}
+                        <a href="https://suins.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          suins.io
+                        </a>
+                      </p>
+                    </div>
+                  )}
 
                   <button
                     onClick={handleCreateProfile}
