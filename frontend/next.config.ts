@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Only enable static export for production builds
-  ...(process.env.NODE_ENV === 'production' && {
+  // Only enable static export when WALRUS_DEPLOY env var is set
+  ...(process.env.WALRUS_DEPLOY === 'true' && {
     output: 'export', // Static export for Walrus Sites
   }),
   images: {
