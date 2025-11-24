@@ -1,20 +1,20 @@
 <div align="center">
-  <img src="frontend/public/walron.JPG" alt="Walron Logo" width="200"/>
+  <img src="frontend/public/walron.JPG" alt="Walron Logo" width="250"/>
   
   # Walron
   
-  **Decentralized Creator Platform Built on the Sui Stack**
+  **Web3 Patreon (Seal + Walrus)**
   
   Built for the Walrus Haulout Hackathon 2024
 </div>
 
-A privacy-first creator monetization platform leveraging Seal encryption and Walrus storage. Creators own their content, fans get verifiable access, and everything runs on-chain.
+Web3 Patreon built with Seal encryption and Walrus storage on the Sui blockchain. Creators own their content, fans get verifiable access, and everything runs on-chain.
 
 ## 🌟 Overview
 
 Creators today face high platform fees, restrictive monetization models, and a lack of direct ownership over their audience relationships. Fans have little transparency into how their money supports creators, and valuable content remains locked within centralized systems.
 
-**Walron** is a decentralized Patreon built on the Sui Stack that empowers creators to own their identity, content, and monetization rules—while giving fans transparent, verifiable access to exclusive material.
+**Walron** is a Web3 Patreon (Seal + Walrus) that empowers creators to own their identity, content, and monetization rules—while giving fans transparent, verifiable access to exclusive material.
 
 The platform enables:
 - **Direct creator–fan relationships** without intermediaries

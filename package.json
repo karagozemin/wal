@@ -1,7 +1,7 @@
 {
   "name": "walron",
   "version": "1.0.0",
-  "description": "Walron - Privacy-first creator platform built on Sui Stack (Walrus + Seal)",
+  "description": "Walron - Web3 Patreon (Seal + Walrus) built on Sui blockchain",
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",

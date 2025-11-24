@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Walron - Privacy-First Creator Platform",
-  description: "Decentralized creator monetization built on the Sui Stack. Encrypted content with Seal, distributed storage with Walrus.",
+  title: "Walron - Web3 Patreon (Seal + Walrus)",
+  description: "Decentralized creator platform with encrypted content (Seal) and distributed storage (Walrus). Built on Sui blockchain.",
   icons: {
     icon: '/walron.JPG',
   },
