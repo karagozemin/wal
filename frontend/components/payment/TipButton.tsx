@@ -73,7 +73,7 @@ export function TipButton({ creatorAddress, profileId }: TipButtonProps) {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="bg-yellow-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition flex items-center gap-2"
+        className="bg-yellow-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition flex items-center gap-2 cursor-pointer"
       >
         <svg
           className="w-5 h-5"
@@ -128,14 +128,14 @@ export function TipButton({ creatorAddress, profileId }: TipButtonProps) {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSendTip}
                   disabled={sending}
-                  className="flex-1 bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                  className="flex-1 bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer transition"
                 >
                   {sending ? "Sending..." : "Send Tip"}
                 </button>

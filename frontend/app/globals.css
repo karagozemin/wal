@@ -64,3 +64,16 @@ body > :not(canvas) {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* Cursor pointer for all clickable elements */
+button:not(:disabled),
+a,
+[role="button"],
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

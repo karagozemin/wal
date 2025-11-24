@@ -194,7 +194,7 @@ export function SubscriptionCard({ tier, profileId, isSubscribed }: Subscription
           <button
             onClick={handleSubscribe}
             disabled={subscribing || isFull}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-bold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition shadow-lg hover:shadow-xl"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-bold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed cursor-pointer transition shadow-lg hover:shadow-xl"
           >
             {subscribing ? (
               <span className="flex items-center justify-center gap-2">

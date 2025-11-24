@@ -71,7 +71,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-700 dark:hover:bg-slate-100 transition-colors text-sm shadow-sm"
+                  className="inline-flex items-center justify-center bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-700 dark:hover:bg-slate-100 transition-colors text-sm shadow-sm cursor-pointer"
                 >
                   Start Creating
                   <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +80,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/explore"
-                  className="inline-flex items-center justify-center bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-6 py-3 rounded-lg font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm"
+                  className="inline-flex items-center justify-center bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-6 py-3 rounded-lg font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm cursor-pointer"
                 >
                   Explore Creators
                 </Link>
@@ -199,7 +199,7 @@ export default function Home() {
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-700 dark:hover:bg-slate-100 transition-colors text-sm"
+            className="inline-flex items-center justify-center bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-700 dark:hover:bg-slate-100 transition-colors text-sm cursor-pointer"
           >
             Launch App
             <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

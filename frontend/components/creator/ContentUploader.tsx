@@ -233,7 +233,7 @@ export function ContentUploader({ profileId, tiers, onSuccess }: ContentUploader
             <button
               type="button"
               onClick={() => setContentType('file')}
-              className={`px-4 py-2 rounded font-medium transition ${
+              className={`px-4 py-2 rounded font-medium transition cursor-pointer ${
                 contentType === 'file'
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -244,7 +244,7 @@ export function ContentUploader({ profileId, tiers, onSuccess }: ContentUploader
             <button
               type="button"
               onClick={() => setContentType('text')}
-              className={`px-4 py-2 rounded font-medium transition ${
+              className={`px-4 py-2 rounded font-medium transition cursor-pointer ${
                 contentType === 'text'
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -363,7 +363,7 @@ export function ContentUploader({ profileId, tiers, onSuccess }: ContentUploader
         <button
           onClick={handleUpload}
           disabled={uploading || (contentType === 'file' ? !file : !textContent.trim()) || !title}
-          className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition"
+          className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed cursor-pointer transition"
         >
           {uploading ? "Uploading..." : contentType === 'text' ? "Publish Text Post" : "Upload Content"}
         </button>
