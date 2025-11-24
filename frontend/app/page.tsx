@@ -63,8 +63,8 @@ export default function Home() {
               </h1>
               
               <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                The first truly decentralized creator economy. Encrypted content, unstoppable hosting, 
-                and subscription NFTs you can trade.
+               Privacy-first creator platform. End-to-end encrypted content, 
+               decentralized storage, and on-chain access control. <br />
               </p>
               
               {/* CTA Buttons */}
