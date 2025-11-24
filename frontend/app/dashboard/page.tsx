@@ -787,10 +787,10 @@ export default function Dashboard() {
 
   if (!account) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Connect Your Wallet</h1>
-          <p className="text-gray-600 mb-6">
+      <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white mb-3">Connect Your Wallet</h1>
+          <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">
             Please connect your wallet to access the dashboard
           </p>
           <WalletButton />
@@ -804,23 +804,28 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
         {/* Header */}
-        <header className="bg-white border-b">
-          <div className="container mx-auto px-4 py-4">
+        <header className="border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+          <div className="container mx-auto px-6 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <Link href="/" className="text-2xl font-bold text-blue-600">
-                  <span>🦭</span> Walron
+                <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-white tracking-tight">
+                  <img 
+                    src="/walron.JPG" 
+                    alt="Walron Logo" 
+                    className="w-8 h-8 object-contain rounded-lg"
+                  />
+                  Walron
                 </Link>
-                <span className="text-gray-400">|</span>
-                <span className="text-gray-600">Creator Dashboard</span>
+                <span className="text-slate-200 dark:text-slate-700">|</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">Dashboard</span>
               </div>
-              <div className="flex items-center gap-4">
-                <Link href="/explore" className="text-gray-600 hover:text-gray-900 font-medium">
+              <div className="flex items-center gap-6">
+                <Link href="/explore" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors">
                   Explore
                 </Link>
-                <Link href="/marketplace" className="text-gray-600 hover:text-gray-900 font-medium">
+                <Link href="/marketplace" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors">
                   Marketplace
                 </Link>
                 <WalletButton />
@@ -829,18 +834,18 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-6 py-8">
           {!hasProfile ? (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-3xl font-bold mb-6">Create Your Profile</h2>
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-6 tracking-tight">Create Your Profile</h2>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Handle *
                       {userSuiNS && (
-                        <span className="ml-2 text-xs text-green-600 font-normal">
+                        <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400 font-normal">
                           (Auto-filled from SuiNS)
                         </span>
                       )}
@@ -860,14 +865,14 @@ export default function Dashboard() {
                           }
                         }}
                         disabled={!!userSuiNS}
-                        className={`w-full border rounded p-2 text-gray-900 bg-white focus:ring-2 outline-none pr-10 ${
+                        className={`w-full border rounded-lg px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:ring-2 outline-none pr-10 transition-colors ${
                           userSuiNS 
-                            ? 'bg-gray-50 cursor-not-allowed opacity-75 border-gray-300' 
+                            ? 'bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed opacity-75 border-slate-300 dark:border-slate-700' 
                             : handleAvailable === true
-                            ? 'border-green-500 focus:border-green-500 focus:ring-green-200'
+                            ? 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500/20'
                             : handleAvailable === false
-                            ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
-                            : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                            : 'border-slate-300 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-slate-200 dark:focus:ring-slate-700'
                         }`}
                         placeholder={userSuiNS ? userSuiNS.replace('.sui', '') : "@yourname"}
                       />
@@ -903,13 +908,13 @@ export default function Dashboard() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Bio *
                     </label>
                     <textarea
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
-                      className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                      className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-colors"
                       rows={4}
                       placeholder="Tell your fans about yourself..."
                     />
@@ -1014,7 +1019,7 @@ export default function Dashboard() {
                       handleAvailable === false || 
                       (!userSuiNS && !handle)
                     }
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-lg font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors"
                   >
                     {uploadingImages
                       ? "Uploading images..."
@@ -1032,11 +1037,11 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-8">
               {/* Profile Info & Actions */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-900">@{handle}</h2>
-                    <p className="text-gray-600 mt-1">{bio}</p>
+                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white">@{handle}</h2>
+                    <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm">{bio}</p>
                     {userSuiNS && (
                       <div className="flex items-center gap-2 mt-2">
                         <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1046,26 +1051,26 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Link
                       href={`/creator/${userSuiNS || handle || account?.address}`}
                       target="_blank"
-                      className="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                      className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-lg font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm"
                     >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      View Public Profile
+                      View Profile
                     </Link>
                     <button
                     onClick={() => {
                       setEditBio(bio);
                       setShowEditProfile(true);
                     }}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
+                      className="bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-lg font-medium hover:bg-slate-700 dark:hover:bg-slate-100 transition-colors flex items-center gap-2 text-sm"
                     >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                       Edit Profile
@@ -1075,79 +1080,79 @@ export default function Dashboard() {
               </div>
 
               {/* Stats */}
-              <div className="grid md:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm opacity-90">Wallet Balance</div>
-                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Wallet Balance</div>
+                    <svg className="w-5 h-5 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
                   </div>
-                  <div className="text-3xl font-bold">{walletBalance.toFixed(2)} SUI</div>
-                  <div className="text-xs opacity-75 mt-1">Available to use</div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{walletBalance.toFixed(2)} SUI</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-500">Available to use</div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm opacity-90">Total Revenue</div>
-                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Total Revenue</div>
+                    <svg className="w-5 h-5 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="text-3xl font-bold">{totalRevenue.toFixed(2)} SUI</div>
-                  <div className="text-xs opacity-75 mt-1">All-time earnings</div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{totalRevenue.toFixed(2)} SUI</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-500">All-time earnings</div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm opacity-90">Subscribers</div>
-                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Subscribers</div>
+                    <svg className="w-5 h-5 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </div>
-                  <div className="text-3xl font-bold">{totalSubscribers}</div>
-                  <div className="text-xs opacity-75 mt-1">Active members</div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{totalSubscribers}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-500">Active members</div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm opacity-90">Total Content</div>
-                    <svg className="w-8 h-8 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Total Content</div>
+                    <svg className="w-5 h-5 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
-                  <div className="text-3xl font-bold">{myContent.length}</div>
-                  <div className="text-xs opacity-75 mt-1">Published items</div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{myContent.length}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-500">Published items</div>
                 </div>
               </div>
 
               {/* Create Subscription Tier */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Create Subscription Tier</h3>
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Create Subscription Tier</h3>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Tier Name *
                     </label>
                     <input
                       type="text"
                       value={tierName}
                       onChange={(e) => setTierName(e.target.value)}
-                      className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                      className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-colors"
                       placeholder="e.g., Basic, Premium"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Price (SUI/month) *
                     </label>
                     <input
                       type="number"
                       value={tierPrice}
                       onChange={(e) => setTierPrice(e.target.value)}
-                      className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                      className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-colors"
                       placeholder="5.0"
                       step="0.1"
                       min="0"
@@ -1155,27 +1160,27 @@ export default function Dashboard() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Description
                     </label>
                     <textarea
                       value={tierDescription}
                       onChange={(e) => setTierDescription(e.target.value)}
-                      className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                      className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-colors"
                       rows={2}
                       placeholder="What subscribers get..."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Max Subscribers
                     </label>
                     <input
                       type="number"
                       value={maxSubscribers}
                       onChange={(e) => setMaxSubscribers(e.target.value)}
-                      className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                      className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-colors"
                       placeholder="100"
                       min="1"
                     />
@@ -1185,7 +1190,7 @@ export default function Dashboard() {
                     <button
                       onClick={handleCreateTier}
                       disabled={creatingTier}
-                      className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                      className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-2.5 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-100 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors"
                     >
                       {creatingTier ? "Creating..." : "Create Tier"}
                     </button>
@@ -1219,28 +1224,28 @@ export default function Dashboard() {
               )}
 
               {/* My Content */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">My Content</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">My Content</h3>
                   
                   {/* Tab Switcher */}
-                  <div className="flex bg-gray-100 rounded-lg p-1">
+                  <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                     <button
                       onClick={() => setShowArchived(false)}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                         !showArchived 
-                          ? 'bg-white text-blue-600 shadow-sm' 
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm' 
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       📁 Active ({myContent.length})
                     </button>
                     <button
                       onClick={() => setShowArchived(true)}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                         showArchived 
-                          ? 'bg-white text-blue-600 shadow-sm' 
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm' 
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       📦 Archived ({archivedContent.length})

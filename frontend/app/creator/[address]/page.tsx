@@ -346,7 +346,7 @@ export default function CreatorProfile({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
           <img 
             src="/walrus-loading.jpg" 
@@ -361,7 +361,7 @@ export default function CreatorProfile({
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-transparent">
         <header className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
@@ -392,7 +392,7 @@ export default function CreatorProfile({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
         {/* Header */}
         <header className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
