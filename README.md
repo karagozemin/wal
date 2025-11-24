@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/public/walron.JPG" alt="Walron Logo" width="250"/>
+  <img src="frontend/public/walron.JPG" alt="Walron Logo" width="150"/>
   
   # Walron
   
