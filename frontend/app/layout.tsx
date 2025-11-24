@@ -17,7 +17,13 @@ export const metadata: Metadata = {
   title: "Walron - Web3 Patreon (Seal + Walrus)",
   description: "Decentralized creator platform with encrypted content (Seal) and distributed storage (Walrus). Built on Sui blockchain.",
   icons: {
-    icon: '/walron.JPG',
+    icon: [
+      { url: '/walron.JPG' },
+      { url: '/walron.JPG', sizes: '32x32', type: 'image/jpeg' },
+      { url: '/walron.JPG', sizes: '16x16', type: 'image/jpeg' },
+    ],
+    apple: '/walron.JPG',
+    shortcut: '/walron.JPG',
   },
 };
 
