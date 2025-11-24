@@ -8,9 +8,9 @@ export default function Home() {
     <div className="min-h-screen bg-transparent">
         {/* Header */}
         <header className="border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex justify-between items-center">
-              <Link href="/" className="flex items-center gap-2.5">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <div className="flex justify-between items-center gap-4">
+              <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
                 <img 
                   src="/walron.JPG" 
                   alt="Walron Logo" 
@@ -20,21 +20,23 @@ export default function Home() {
                   Walron
                 </h1>
               </Link>
-              <div className="flex items-center gap-6">
+              <nav className="flex items-center gap-3 sm:gap-6">
                 <Link
                   href="/explore"
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors"
+                  className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors whitespace-nowrap"
                 >
                   Explore
                 </Link>
                 <Link
-                  href="/marketplace"
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors"
+                  href="/dashboard"
+                  className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors whitespace-nowrap"
                 >
-                  Marketplace
+                  Dashboard
                 </Link>
-                <WalletButton />
-              </div>
+                <div className="flex-shrink-0">
+                  <WalletButton />
+                </div>
+              </nav>
             </div>
           </div>
         </header>
@@ -210,7 +212,7 @@ export default function Home() {
         <footer className="border-t border-slate-100 dark:border-slate-800 py-8">
           <div className="container mx-auto px-6">
             <div className="text-center text-slate-500 dark:text-slate-400 text-sm">
-              <p>Built for Walrus Haulout Hackathon 2024</p>
+              <p>Built for Walrus Haulout Hackathon 2025</p>
               <p className="mt-2 text-xs">
                 Powered by Sui • Walrus • Seal
               </p>

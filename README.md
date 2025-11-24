@@ -5,7 +5,7 @@
   
   **Web3 Patreon (Seal + Walrus)**
   
-  Built for the Walrus Haulout Hackathon 2024
+  Built for the Walrus Haulout Hackathon 2025
 </div>
 
 Web3 Patreon built with Seal encryption and Walrus storage on the Sui blockchain. Creators own their content, fans get verifiable access, and everything runs on-chain.

@@ -807,29 +807,31 @@ export default function Dashboard() {
     <div className="min-h-screen bg-transparent">
         {/* Header */}
         <header className="border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <div className="flex justify-between items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
                 <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-white tracking-tight">
                   <img 
                     src="/walron.JPG" 
                     alt="Walron Logo" 
                     className="w-8 h-8 object-contain rounded-lg"
                   />
-                  Walron
+                  <span className="hidden sm:inline">Walron</span>
                 </Link>
-                <span className="text-slate-200 dark:text-slate-700">|</span>
+                <span className="text-slate-200 dark:text-slate-700 hidden sm:inline">|</span>
                 <span className="text-sm text-slate-600 dark:text-slate-400">Dashboard</span>
               </div>
-              <div className="flex items-center gap-6">
-                <Link href="/explore" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors">
+              <nav className="flex items-center gap-3 sm:gap-6">
+                <Link href="/explore" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors whitespace-nowrap">
                   Explore
                 </Link>
-                <Link href="/marketplace" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors">
-                  Marketplace
+                <Link href="/dashboard" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors whitespace-nowrap">
+                  Dashboard
                 </Link>
-                <WalletButton />
-              </div>
+                <div className="flex-shrink-0">
+                  <WalletButton />
+                </div>
+              </nav>
             </div>
           </div>
         </header>

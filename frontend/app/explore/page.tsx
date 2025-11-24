@@ -118,25 +118,33 @@ export default function Explore() {
     <div className="min-h-screen bg-transparent">
         {/* Header */}
         <header className="border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex justify-between items-center">
-              <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-white tracking-tight">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <div className="flex justify-between items-center gap-4">
+              <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-white tracking-tight flex-shrink-0">
                 <img 
                   src="/walron.JPG" 
                   alt="Walron Logo" 
                   className="w-8 h-8 object-contain rounded-lg"
                 />
-                Walron
+                <span className="hidden sm:inline">Walron</span>
               </Link>
-              <div className="flex items-center gap-6">
+              <nav className="flex items-center gap-3 sm:gap-6">
+                <Link
+                  href="/explore"
+                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors whitespace-nowrap"
+                >
+                  Explore
+                </Link>
                 <Link
                   href="/dashboard"
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors"
+                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-medium transition-colors whitespace-nowrap"
                 >
                   Dashboard
                 </Link>
-                <WalletButton />
-              </div>
+                <div className="flex-shrink-0">
+                  <WalletButton />
+                </div>
+              </nav>
             </div>
           </div>
         </header>

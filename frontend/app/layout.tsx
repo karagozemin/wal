@@ -38,7 +38,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <DarkVeil hueShift={220} speed={0.3} noiseIntensity={0.02} scanlineIntensity={0.05} />
+        <DarkVeil hueShift={0} speed={0.3} noiseIntensity={0.02} scanlineIntensity={0.05} />
         <Providers>{children}</Providers>
       </body>
     </html>

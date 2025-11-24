@@ -2,7 +2,7 @@
 
 export function LoadingWalrus() {
   return (
-    <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="text-center">
         {/* Walrus Image with Animation */}
         <div className="relative">
@@ -19,7 +19,7 @@ export function LoadingWalrus() {
         
         {/* Loading Text */}
         <div className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
             Loading...
           </h2>
         </div>
